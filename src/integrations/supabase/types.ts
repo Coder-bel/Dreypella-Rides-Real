@@ -14,7 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string
+          id: string
+          passengers: number
+          pickup: string
+          price: number
+          route: string
+          status: string
+          travel_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          passengers?: number
+          pickup: string
+          price: number
+          route: string
+          status?: string
+          travel_date: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          passengers?: number
+          pickup?: string
+          price?: number
+          route?: string
+          status?: string
+          travel_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dispatches: {
+        Row: {
+          created_at: string
+          delivery_type: string
+          dropoff: string
+          id: string
+          package_type: string
+          pickup: string
+          price: number
+          receiver_phone: string
+          sender_phone: string
+          status: string
+          tracking_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_type?: string
+          dropoff: string
+          id?: string
+          package_type: string
+          pickup: string
+          price: number
+          receiver_phone: string
+          sender_phone: string
+          status?: string
+          tracking_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_type?: string
+          dropoff?: string
+          id?: string
+          package_type?: string
+          pickup?: string
+          price?: number
+          receiver_phone?: string
+          sender_phone?: string
+          status?: string
+          tracking_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          matric_number: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+          wallet_balance: number
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          matric_number?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_balance?: number
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          matric_number?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_balance?: number
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          reference: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          reference?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          reference?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

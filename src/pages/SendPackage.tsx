@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Package, CheckCircle } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const packageTypes = ["Small Envelope", "Medium Box", "Large Box", "Electronics", "Documents"];
 const locations = ["LAUTECH Gate", "Under G", "General Hospital Area", "Sabo Area", "Iwo Road (Ibadan)", "Bodija (Ibadan)", "Berger (Lagos)", "Yaba (Lagos)", "Ikeja (Lagos)", "Ojota (Lagos)"];
 
 const SendPackage = () => {
+  const { user } = useAuth();
   const [form, setForm] = useState({
     packageType: "",
     pickup: "",
@@ -17,6 +20,7 @@ const SendPackage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [trackingId, setTrackingId] = useState("");
+  const [error, setError] = useState("");
 
   const price = form.delivery === "same-day" ? 3500 : 2000;
 
@@ -28,15 +32,36 @@ const SendPackage = () => {
     return "DRP-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     setLoading(true);
-    setTimeout(() => {
-      const id = generateTrackingId();
-      setTrackingId(id);
+    setError("");
+
+    const id = generateTrackingId();
+
+    const { error: dbError } = await supabase.from("dispatches").insert({
+      user_id: user.id,
+      tracking_id: id,
+      package_type: form.packageType,
+      pickup: form.pickup,
+      dropoff: form.dropoff,
+      sender_phone: form.senderPhone,
+      receiver_phone: form.receiverPhone,
+      delivery_type: form.delivery,
+      price,
+      status: "pending",
+    });
+
+    if (dbError) {
+      setError("Failed to save dispatch. Please try again.");
       setLoading(false);
-      setSubmitted(true);
-    }, 1500);
+      return;
+    }
+
+    setTrackingId(id);
+    setLoading(false);
+    setSubmitted(true);
   };
 
   if (submitted) {
@@ -64,6 +89,10 @@ const SendPackage = () => {
     <div className="container px-4 py-6 max-w-lg mx-auto">
       <h1 className="font-display font-bold text-xl mb-1 animate-fade-in-up">Send a Package</h1>
       <p className="text-sm text-muted-foreground mb-6 animate-fade-in-up-delay-1">Fast & affordable dispatch across routes</p>
+
+      {error && (
+        <div className="bg-destructive/10 text-destructive text-sm px-4 py-2 rounded-xl mb-4 animate-shake">{error}</div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in-up-delay-2">
         <div>
@@ -101,7 +130,6 @@ const SendPackage = () => {
           </div>
         </div>
 
-        {/* Delivery speed */}
         <div>
           <label className="block text-sm font-medium mb-2">Delivery Speed</label>
           <div className="grid grid-cols-2 gap-3">
@@ -112,19 +140,10 @@ const SendPackage = () => {
               <label
                 key={opt.value}
                 className={`flex flex-col items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                  form.delivery === opt.value
-                    ? "border-accent bg-accent/5"
-                    : "border-border hover:border-accent/30"
+                  form.delivery === opt.value ? "border-accent bg-accent/5" : "border-border hover:border-accent/30"
                 }`}
               >
-                <input
-                  type="radio"
-                  name="delivery"
-                  value={opt.value}
-                  checked={form.delivery === opt.value}
-                  onChange={(e) => handleChange("delivery", e.target.value)}
-                  className="sr-only"
-                />
+                <input type="radio" name="delivery" value={opt.value} checked={form.delivery === opt.value} onChange={(e) => handleChange("delivery", e.target.value)} className="sr-only" />
                 <span className="text-sm font-semibold">{opt.label}</span>
                 <span className="text-xs text-accent font-bold">{opt.price}</span>
               </label>
@@ -132,17 +151,12 @@ const SendPackage = () => {
           </div>
         </div>
 
-        {/* Price */}
         <div className="bg-secondary rounded-xl p-4 text-center">
           <p className="text-xs text-muted-foreground uppercase tracking-wider">Estimated Price</p>
           <p className="text-2xl font-display font-bold text-accent">₦{price.toLocaleString()}</p>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-accent hover:bg-red-brand-light text-accent-foreground font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] disabled:opacity-60 flex items-center justify-center gap-2"
-        >
+        <button type="submit" disabled={loading} className="w-full bg-accent hover:bg-red-brand-light text-accent-foreground font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] disabled:opacity-60 flex items-center justify-center gap-2">
           {loading ? (
             <div className="w-5 h-5 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin" />
           ) : (

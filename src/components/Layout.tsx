@@ -1,22 +1,24 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bus, Package, Home, User, Menu, X, Moon, Sun } from "lucide-react";
-
-const navItems = [
-  { path: "/", label: "Home", icon: Home },
-  { path: "/book-ride", label: "Book Ride", icon: Bus },
-  { path: "/send-package", label: "Send Package", icon: Package },
-  { path: "/dashboard", label: "Dashboard", icon: User },
-];
+import { Bus, Package, Home, User, Menu, X, Moon, Sun, LogIn } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
+
+  const navItems = [
+    { path: "/", label: "Home", icon: Home, requiresAuth: false },
+    { path: "/book-ride", label: "Book Ride", icon: Bus, requiresAuth: true },
+    { path: "/send-package", label: "Send", icon: Package, requiresAuth: true },
+    { path: user ? "/dashboard" : "/auth", label: user ? "Dashboard" : "Login", icon: user ? User : LogIn, requiresAuth: false },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -42,11 +44,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
 
-            {/* Desktop nav */}
             <nav className="hidden md:flex items-center gap-1">
               {navItems.map((item) => (
                 <Link
-                  key={item.path}
+                  key={item.path + item.label}
                   to={item.path}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     location.pathname === item.path
@@ -61,12 +62,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
 
-        {/* Mobile dropdown */}
         {menuOpen && (
           <nav className="md:hidden border-t border-primary-foreground/10 animate-fade-in-up">
             {navItems.map((item) => (
               <Link
-                key={item.path}
+                key={item.path + item.label}
                 to={item.path}
                 onClick={() => setMenuOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
@@ -83,7 +83,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         )}
       </header>
 
-      {/* Main content */}
       <main className="flex-1">{children}</main>
 
       {/* Mobile bottom nav */}
@@ -91,12 +90,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <div className="flex">
           {navItems.map((item) => (
             <Link
-              key={item.path}
+              key={item.path + item.label}
               to={item.path}
               className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
-                location.pathname === item.path
-                  ? "text-accent"
-                  : "text-muted-foreground"
+                location.pathname === item.path ? "text-accent" : "text-muted-foreground"
               }`}
             >
               <item.icon size={20} />
@@ -106,7 +103,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </nav>
 
-      {/* Bottom padding for mobile nav */}
       <div className="md:hidden h-16" />
     </div>
   );
