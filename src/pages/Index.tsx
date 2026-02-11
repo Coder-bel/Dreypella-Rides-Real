@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { Bus, Package, ArrowRight, MapPin } from "lucide-react";
+import { Bus, Package, ArrowRight, MapPin, LogIn } from "lucide-react";
 import heroImage from "@/assets/hero-image.jpg";
 import CountdownTimer from "@/components/CountdownTimer";
 import TestimonialCard from "@/components/TestimonialCard";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { useAuth } from "@/hooks/useAuth";
 
 const routes = [
   { from: "Ogbomoso", to: "Lagos", price: "₦4,000" },
@@ -30,55 +31,71 @@ const testimonials = [
 ];
 
 const Index = () => {
+  const { user } = useAuth();
+
   return (
     <div className="pb-6">
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={heroImage} alt="Students boarding a DREYPELLA bus" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-hero-overlay" />
+      {/* Hero Image - no text overlay */}
+      <section className="w-full">
+        <div className="w-full h-48 sm:h-64 lg:h-80 overflow-hidden">
+          <img src={heroImage} alt="DREYPELLA shuttle bus on the road" className="w-full h-full object-cover" />
         </div>
-        <div className="relative container px-4 py-16 sm:py-24 text-center">
-          <h1 className="font-display font-bold text-2xl sm:text-4xl lg:text-5xl text-primary-foreground leading-tight animate-fade-in-up">
-            DREYPELLA RIDE
-          </h1>
-          <p className="text-primary-foreground/80 text-sm sm:text-base mt-2 max-w-md mx-auto animate-fade-in-up-delay-1">
-            Affordable Student Transport & Dispatch for LAUTECH
-          </p>
-          <p className="text-primary-foreground/60 text-xs sm:text-sm mt-1 animate-fade-in-up-delay-1">
-            Ogbomoso ↔ Ibadan ↔ Lagos — Reliable, Cheap, Student-Focused
-          </p>
+      </section>
 
-          {/* Price badge */}
-          <div className="mt-5 animate-fade-in-up-delay-2">
-            <span className="inline-block bg-accent text-accent-foreground text-sm font-bold px-4 py-1.5 rounded-full animate-pulse-red">
-              From ₦4,000
-            </span>
-          </div>
+      {/* Hero Text - separate from image */}
+      <section className="container px-4 py-8 text-center">
+        <h1 className="font-display font-bold text-2xl sm:text-4xl lg:text-5xl leading-tight animate-fade-in-up">
+          DREYPELLA <span className="text-accent">RIDE</span>
+        </h1>
+        <p className="text-muted-foreground text-sm sm:text-base mt-2 max-w-md mx-auto animate-fade-in-up-delay-1">
+          Affordable Student Transport & Dispatch for LAUTECH
+        </p>
+        <p className="text-muted-foreground/60 text-xs sm:text-sm mt-1 animate-fade-in-up-delay-1">
+          Ogbomoso ↔ Ibadan ↔ Lagos — Reliable, Cheap, Student-Focused
+        </p>
 
-          {/* CTA buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6 animate-fade-in-up-delay-3">
+        {/* Price badge */}
+        <div className="mt-5 animate-fade-in-up-delay-2">
+          <span className="inline-block bg-accent text-accent-foreground text-sm font-bold px-4 py-1.5 rounded-full animate-pulse-red">
+            From ₦4,000
+          </span>
+        </div>
+
+        {/* CTA buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6 animate-fade-in-up-delay-3">
+          {user ? (
+            <>
+              <Link
+                to="/book-ride"
+                className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-red-brand-light text-accent-foreground font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+              >
+                <Bus size={18} />
+                Book a Ride
+                <ArrowRight size={16} />
+              </Link>
+              <Link
+                to="/send-package"
+                className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-105 border"
+              >
+                <Package size={18} />
+                Send a Package
+              </Link>
+            </>
+          ) : (
             <Link
-              to="/book-ride"
+              to="/auth"
               className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-red-brand-light text-accent-foreground font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
             >
-              <Bus size={18} />
-              Book a Ride
+              <LogIn size={18} />
+              Log In to Book
               <ArrowRight size={16} />
             </Link>
-            <Link
-              to="/send-package"
-              className="inline-flex items-center justify-center gap-2 bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-105 border border-primary-foreground/20"
-            >
-              <Package size={18} />
-              Send a Package
-            </Link>
-          </div>
+          )}
         </div>
       </section>
 
       {/* Countdown */}
-      <section className="container px-4 -mt-6 relative z-10">
+      <section className="container px-4 relative z-10">
         <CountdownTimer />
       </section>
 
@@ -89,7 +106,7 @@ const Index = () => {
           {routes.map((r, i) => (
             <Link
               key={i}
-              to="/book-ride"
+              to={user ? "/book-ride" : "/auth"}
               className="flex items-center justify-between bg-card rounded-xl p-4 border hover-lift animate-fade-in-up"
               style={{ animationDelay: `${i * 0.1}s` }}
             >
