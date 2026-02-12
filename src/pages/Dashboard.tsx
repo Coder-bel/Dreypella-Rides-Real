@@ -23,17 +23,25 @@ const Dashboard = () => {
   const [fundSuccess, setFundSuccess] = useState("");
   const [paystackLoaded, setPaystackLoaded] = useState(false);
 
-  // Load Paystack script
+  const [paystackKey, setPaystackKey] = useState("");
+
+  // Load Paystack script and key
   useEffect(() => {
-    if (document.getElementById("paystack-script")) {
+    // Load script
+    if (!document.getElementById("paystack-script")) {
+      const script = document.createElement("script");
+      script.id = "paystack-script";
+      script.src = "https://js.paystack.co/v1/inline.js";
+      script.onload = () => setPaystackLoaded(true);
+      document.head.appendChild(script);
+    } else {
       setPaystackLoaded(true);
-      return;
     }
-    const script = document.createElement("script");
-    script.id = "paystack-script";
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.onload = () => setPaystackLoaded(true);
-    document.head.appendChild(script);
+
+    // Fetch Paystack key
+    supabase.functions.invoke("get-paystack-key").then(({ data }) => {
+      if (data?.key) setPaystackKey(data.key);
+    });
   }, []);
 
   const fetchData = async () => {
@@ -62,14 +70,14 @@ const Dashboard = () => {
       setFundError("Minimum deposit is ₦100");
       return;
     }
-    if (!paystackLoaded || !window.PaystackPop) {
+    if (!paystackLoaded || !window.PaystackPop || !paystackKey) {
       setFundError("Payment system is loading. Please try again.");
       return;
     }
 
     setFundLoading(true);
     const handler = window.PaystackPop.setup({
-      key: "pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", // Replace with real Paystack public key
+      key: paystackKey,
       email: user?.email || "",
       amount: amount * 100, // Paystack uses kobo
       currency: "NGN",
