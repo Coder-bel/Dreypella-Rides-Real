@@ -3,6 +3,7 @@ import { Bus, AlertTriangle, CheckCircle } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 const routeOptions = [
   "Ogbomoso → Lagos",
@@ -52,7 +53,43 @@ const BookRide = () => {
     setLoading(true);
     setError("");
 
-    // Save booking to database
+    // Check wallet balance
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("wallet_balance")
+      .eq("user_id", user.id)
+      .single();
+
+    const balance = profile?.wallet_balance || 0;
+
+    if (balance < price) {
+      setError(`Insufficient wallet balance (₦${balance.toLocaleString()}). Please fund your wallet first.`);
+      setLoading(false);
+      return;
+    }
+
+    // Deduct from wallet
+    const newBalance = balance - price;
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ wallet_balance: newBalance })
+      .eq("user_id", user.id);
+
+    if (updateError) {
+      setError("Failed to process payment. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    // Record wallet transaction (debit)
+    await supabase.from("wallet_transactions").insert({
+      user_id: user.id,
+      amount: -price,
+      type: "ride_payment",
+      reference: `Ride: ${route} on ${date}`,
+    });
+
+    // Save booking
     const { error: dbError } = await supabase.from("bookings").insert({
       user_id: user.id,
       route,
@@ -64,12 +101,14 @@ const BookRide = () => {
     });
 
     if (dbError) {
+      // Refund on failure
+      await supabase.from("profiles").update({ wallet_balance: balance }).eq("user_id", user.id);
       setError("Failed to save booking. Please try again.");
       setLoading(false);
       return;
     }
 
-    // Add 10% cashback to wallet
+    // Add 10% cashback
     const cashback = Math.round(price * 0.1);
     await supabase.from("wallet_transactions").insert({
       user_id: user.id,
@@ -77,12 +116,7 @@ const BookRide = () => {
       type: "cashback",
       reference: `Cashback for ${route}`,
     });
-
-    // Update wallet balance
-    const { data: profile } = await supabase.from("profiles").select("wallet_balance").eq("user_id", user.id).single();
-    if (profile) {
-      await supabase.from("profiles").update({ wallet_balance: (profile.wallet_balance || 0) + cashback }).eq("user_id", user.id);
-    }
+    await supabase.from("profiles").update({ wallet_balance: newBalance + cashback }).eq("user_id", user.id);
 
     setLoading(false);
     setSubmitted(true);
@@ -95,7 +129,7 @@ const BookRide = () => {
         <div className="bg-card rounded-2xl p-8 border max-w-md mx-auto">
           <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
           <h2 className="font-display font-bold text-xl mb-2">Booking Confirmed!</h2>
-          <p className="text-sm text-muted-foreground mb-4">Your seat has been reserved.</p>
+          <p className="text-sm text-muted-foreground mb-4">Payment deducted from your wallet.</p>
           <div className="bg-secondary rounded-lg p-4 text-left text-sm space-y-1 mb-4">
             <p><span className="font-medium">Route:</span> {route}</p>
             <p><span className="font-medium">Date:</span> {date}</p>
@@ -116,7 +150,14 @@ const BookRide = () => {
       <p className="text-sm text-muted-foreground mb-6 animate-fade-in-up-delay-1">Select your route and travel date</p>
 
       {error && (
-        <div className="bg-destructive/10 text-destructive text-sm px-4 py-2 rounded-xl mb-4 animate-shake">{error}</div>
+        <div className="bg-destructive/10 text-destructive text-sm px-4 py-2 rounded-xl mb-4 animate-shake">
+          {error}
+          {error.includes("Insufficient") && (
+            <Link to="/dashboard" className="block mt-2 text-accent font-semibold underline text-xs">
+              → Go to Dashboard to fund wallet
+            </Link>
+          )}
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in-up-delay-2">
@@ -168,6 +209,7 @@ const BookRide = () => {
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Price</p>
             <p className="text-2xl font-display font-bold text-accent">₦{price.toLocaleString()}</p>
             <p className="text-xs text-green-600 mt-1">🎁 ₦{Math.round(price * 0.1).toLocaleString()} cashback to wallet</p>
+            <p className="text-xs text-muted-foreground mt-1">💳 Will be deducted from wallet</p>
           </div>
         )}
 
@@ -177,7 +219,7 @@ const BookRide = () => {
           ) : (
             <>
               <Bus size={18} />
-              Confirm Booking
+              Pay & Confirm Booking
             </>
           )}
         </button>
