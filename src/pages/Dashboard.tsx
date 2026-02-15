@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
-import { Bus, Package, Wallet, Clock, LogOut, Plus, Copy, CheckCircle, X } from "lucide-react";
+import { Bus, Package, Wallet, Clock, LogOut, Plus, Copy, CheckCircle, X, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
-const BANK_DETAILS = {
-  accountName: "Dreypella Ride Ltd",
-  accountNumber: "1234567890",
-  bank: "First Bank Nigeria",
-};
+interface DvaDetails {
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  customer_code: string;
+}
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -16,29 +17,40 @@ const Dashboard = () => {
   const [walletBalance, setWalletBalance] = useState(0);
   const [bookings, setBookings] = useState<any[]>([]);
   const [dispatches, setDispatches] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [showFund, setShowFund] = useState(false);
   const [copied, setCopied] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [dva, setDva] = useState<DvaDetails | null>(null);
+  const [dvaLoading, setDvaLoading] = useState(false);
+  const [dvaError, setDvaError] = useState("");
 
   const fetchData = async () => {
     if (!user) return;
 
-    const [profileRes, bookingsRes, dispatchRes] = await Promise.all([
-      supabase.from("profiles").select("wallet_balance").eq("user_id", user.id).single(),
+    const [profileRes, bookingsRes, dispatchRes, txRes] = await Promise.all([
+      supabase.from("profiles").select("wallet_balance, dva_details").eq("user_id", user.id).single(),
       supabase.from("bookings").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
       supabase.from("dispatches").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+      supabase.from("wallet_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
     ]);
 
-    if (profileRes.data) setWalletBalance(profileRes.data.wallet_balance || 0);
+    if (profileRes.data) {
+      setWalletBalance(profileRes.data.wallet_balance || 0);
+      if (profileRes.data.dva_details) {
+        setDva(profileRes.data.dva_details as unknown as DvaDetails);
+      }
+    }
     if (bookingsRes.data) setBookings(bookingsRes.data);
     if (dispatchRes.data) setDispatches(dispatchRes.data);
+    if (txRes.data) setTransactions(txRes.data);
   };
 
   useEffect(() => {
     fetchData();
   }, [user]);
 
-  // Real-time subscription for wallet and bookings
+  // Real-time subscription for wallet updates
   useEffect(() => {
     if (!user) return;
 
@@ -48,18 +60,16 @@ const Dashboard = () => {
         if (payload.new?.wallet_balance !== undefined) {
           setWalletBalance(payload.new.wallet_balance);
         }
+        if (payload.new?.dva_details) {
+          setDva(payload.new.dva_details as DvaDetails);
+        }
       })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "bookings", filter: `user_id=eq.${user.id}` }, () => {
-        fetchData();
-      })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "dispatches", filter: `user_id=eq.${user.id}` }, () => {
-        fetchData();
-      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "bookings", filter: `user_id=eq.${user.id}` }, () => fetchData())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "dispatches", filter: `user_id=eq.${user.id}` }, () => fetchData())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "wallet_transactions", filter: `user_id=eq.${user.id}` }, () => fetchData())
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   const copyToClipboard = (text: string, label: string) => {
@@ -71,6 +81,34 @@ const Dashboard = () => {
   const handleLogout = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const createDva = async () => {
+    setDvaLoading(true);
+    setDvaError("");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setDvaError("Please log in again.");
+        setDvaLoading(false);
+        return;
+      }
+
+      const res = await supabase.functions.invoke("create-dva", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (res.error) {
+        setDvaError(res.error.message || "Failed to create virtual account.");
+      } else if (res.data?.dva) {
+        setDva(res.data.dva);
+      } else if (res.data?.error) {
+        setDvaError(res.data.error);
+      }
+    } catch (err: any) {
+      setDvaError("Something went wrong. Please try again.");
+    }
+    setDvaLoading(false);
   };
 
   const upcomingBookings = bookings.filter((b) => new Date(b.travel_date) >= new Date());
@@ -105,12 +143,12 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Fund Wallet - Manual Bank Transfer */}
+      {/* Fund Wallet - DVA */}
       <div className="bg-card rounded-2xl p-5 border mb-4 animate-fade-in-up-delay-3">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-display font-semibold text-sm">Wallet</h3>
           <button
-            onClick={() => setShowFund(!showFund)}
+            onClick={() => { setShowFund(!showFund); if (!dva && !showFund) createDva(); }}
             className="inline-flex items-center gap-1 text-accent text-sm font-semibold hover:underline"
           >
             <Plus size={14} />
@@ -120,62 +158,88 @@ const Dashboard = () => {
 
         {showFund && (
           <div className="space-y-3 animate-fade-in-up">
-            <div className="bg-secondary rounded-xl p-4 space-y-3">
-              <p className="text-sm font-semibold text-center">Transfer to this account:</p>
-
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Bank:</span>
-                  <span className="font-semibold">{BANK_DETAILS.bank}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Account Name:</span>
-                  <span className="font-semibold">{BANK_DETAILS.accountName}</span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-muted-foreground">Account No:</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-bold text-accent">{BANK_DETAILS.accountNumber}</span>
-                    <button
-                      onClick={() => copyToClipboard(BANK_DETAILS.accountNumber, "acct")}
-                      className="p-1 hover:bg-background rounded transition-colors"
-                      aria-label="Copy account number"
-                    >
-                      {copied === "acct" ? <CheckCircle size={14} className="text-green-500" /> : <Copy size={14} className="text-muted-foreground" />}
-                    </button>
+            {dvaLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+                <span className="ml-2 text-sm text-muted-foreground">Setting up your virtual account...</span>
+              </div>
+            ) : dvaError ? (
+              <div className="bg-destructive/10 text-destructive text-sm px-4 py-3 rounded-xl">
+                <p>{dvaError}</p>
+                <button onClick={createDva} className="mt-2 text-accent font-semibold underline text-xs">Try Again</button>
+              </div>
+            ) : dva ? (
+              <div className="bg-secondary rounded-xl p-4 space-y-3">
+                <p className="text-sm font-semibold text-center">Transfer to your dedicated account:</p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Bank:</span>
+                    <span className="font-semibold">{dva.bank_name}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Account Name:</span>
+                    <span className="font-semibold">{dva.account_name}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">Account No:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-accent">{dva.account_number}</span>
+                      <button
+                        onClick={() => copyToClipboard(dva.account_number, "acct")}
+                        className="p-1 hover:bg-background rounded transition-colors"
+                        aria-label="Copy account number"
+                      >
+                        {copied === "acct" ? <CheckCircle size={14} className="text-green-500" /> : <Copy size={14} className="text-muted-foreground" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-muted-foreground">Reference:</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-xs font-bold">{user?.email}</span>
-                    <button
-                      onClick={() => copyToClipboard(user?.email || "", "ref")}
-                      className="p-1 hover:bg-background rounded transition-colors"
-                      aria-label="Copy reference"
-                    >
-                      {copied === "ref" ? <CheckCircle size={14} className="text-green-500" /> : <Copy size={14} className="text-muted-foreground" />}
-                    </button>
-                  </div>
+                <div className="bg-accent/10 rounded-lg p-3 text-xs text-center space-y-1">
+                  <p className="font-semibold text-accent">How to Fund</p>
+                  <p className="text-muted-foreground">
+                    Transfer any amount (min ₦100) to this account via bank app, USSD, or mobile transfer.
+                    Your wallet will be credited automatically once confirmed.
+                  </p>
                 </div>
               </div>
-
-              <div className="bg-accent/10 rounded-lg p-3 text-xs text-center space-y-1">
-                <p className="font-semibold text-accent">Important Instructions:</p>
-                <p className="text-muted-foreground">
-                  Transfer the desired amount (min ₦100) via bank app, USSD, or mobile transfer.
-                  Use your <strong>email as the reference</strong> so we can identify your payment.
-                  Your wallet will be credited once confirmed.
-                </p>
+            ) : (
+              <div className="text-center py-6">
+                <button onClick={createDva} className="bg-accent text-accent-foreground px-4 py-2 rounded-xl font-semibold text-sm hover:scale-105 transition-transform">
+                  Create Virtual Account
+                </button>
+                <p className="text-xs text-muted-foreground mt-2">Get a dedicated account number for instant wallet funding</p>
               </div>
-            </div>
+            )}
           </div>
         )}
-
-        <p className="text-xs text-muted-foreground mt-2">
-          🎁 Get <span className="text-accent font-semibold">10% cashback</span> on every ride credited to your wallet!
-        </p>
       </div>
+
+      {/* Transaction History */}
+      {transactions.length > 0 && (
+        <div className="mb-4">
+          <h3 className="font-display font-semibold text-sm mb-2">Transaction History</h3>
+          <div className="space-y-2">
+            {transactions.slice(0, 10).map((tx) => (
+              <div key={tx.id} className="bg-card rounded-xl p-3 border text-sm flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  {tx.amount > 0 ? (
+                    <ArrowDownLeft size={14} className="text-green-500" />
+                  ) : (
+                    <ArrowUpRight size={14} className="text-accent" />
+                  )}
+                  <div>
+                    <p className="font-medium text-xs capitalize">{tx.type.replace(/_/g, " ")}</p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[180px]">{tx.reference}</p>
+                  </div>
+                </div>
+                <span className={`font-display font-bold text-sm ${tx.amount > 0 ? "text-green-500" : "text-accent"}`}>
+                  {tx.amount > 0 ? "+" : ""}₦{Math.abs(tx.amount).toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Upcoming Trips */}
       {upcomingBookings.length > 0 && (
@@ -185,11 +249,7 @@ const Dashboard = () => {
             {upcomingBookings.map((b) => {
               const daysLeft = Math.ceil((new Date(b.travel_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
               return (
-                <div
-                  key={b.id}
-                  onClick={() => setSelectedBooking(b)}
-                  className="bg-card rounded-xl p-3 border text-sm cursor-pointer hover-lift transition-all"
-                >
+                <div key={b.id} onClick={() => setSelectedBooking(b)} className="bg-card rounded-xl p-3 border text-sm cursor-pointer hover-lift transition-all">
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="font-medium">{b.route}</p>

@@ -53,7 +53,6 @@ const BookRide = () => {
     setLoading(true);
     setError("");
 
-    // Check wallet balance
     const { data: profile } = await supabase
       .from("profiles")
       .select("wallet_balance")
@@ -68,7 +67,6 @@ const BookRide = () => {
       return;
     }
 
-    // Deduct from wallet
     const newBalance = balance - price;
     const { error: updateError } = await supabase
       .from("profiles")
@@ -81,7 +79,6 @@ const BookRide = () => {
       return;
     }
 
-    // Record wallet transaction (debit)
     await supabase.from("wallet_transactions").insert({
       user_id: user.id,
       amount: -price,
@@ -89,7 +86,6 @@ const BookRide = () => {
       reference: `Ride: ${route} on ${date}`,
     });
 
-    // Save booking
     const { error: dbError } = await supabase.from("bookings").insert({
       user_id: user.id,
       route,
@@ -101,29 +97,17 @@ const BookRide = () => {
     });
 
     if (dbError) {
-      // Refund on failure
       await supabase.from("profiles").update({ wallet_balance: balance }).eq("user_id", user.id);
       setError("Failed to save booking. Please try again.");
       setLoading(false);
       return;
     }
 
-    // Add 10% cashback
-    const cashback = Math.round(price * 0.1);
-    await supabase.from("wallet_transactions").insert({
-      user_id: user.id,
-      amount: cashback,
-      type: "cashback",
-      reference: `Cashback for ${route}`,
-    });
-    await supabase.from("profiles").update({ wallet_balance: newBalance + cashback }).eq("user_id", user.id);
-
     setLoading(false);
     setSubmitted(true);
   };
 
   if (submitted) {
-    const cashback = Math.round(price * 0.1);
     return (
       <div className="container px-4 py-12 text-center animate-fade-in-up">
         <div className="bg-card rounded-2xl p-8 border max-w-md mx-auto">
@@ -136,7 +120,6 @@ const BookRide = () => {
             <p><span className="font-medium">Pickup:</span> {pickup}</p>
             <p><span className="font-medium">Passengers:</span> {passengers}</p>
             <p className="font-bold text-accent">Total: ₦{price.toLocaleString()}</p>
-            <p className="text-green-600 font-medium">🎁 ₦{cashback.toLocaleString()} cashback added to wallet!</p>
           </div>
           <p className="text-xs text-muted-foreground">You'll receive a confirmation on WhatsApp shortly.</p>
         </div>
@@ -208,7 +191,6 @@ const BookRide = () => {
           <div className="bg-secondary rounded-xl p-4 text-center animate-fade-in-up">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Price</p>
             <p className="text-2xl font-display font-bold text-accent">₦{price.toLocaleString()}</p>
-            <p className="text-xs text-green-600 mt-1">🎁 ₦{Math.round(price * 0.1).toLocaleString()} cashback to wallet</p>
             <p className="text-xs text-muted-foreground mt-1">💳 Will be deducted from wallet</p>
           </div>
         )}

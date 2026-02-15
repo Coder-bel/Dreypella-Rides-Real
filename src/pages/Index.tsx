@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { Bus, Package, ArrowRight, MapPin, LogIn } from "lucide-react";
-import heroImage from "@/assets/hero-image.jpg";
 import CountdownTimer from "@/components/CountdownTimer";
 import TestimonialCard from "@/components/TestimonialCard";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -35,14 +34,19 @@ const Index = () => {
 
   return (
     <div className="pb-6">
-      {/* Hero Image - no text overlay */}
-      <section className="w-full">
-        <div className="w-full h-48 sm:h-64 lg:h-80 overflow-hidden">
-          <img src={heroImage} alt="DREYPELLA shuttle bus on the road" className="w-full h-full object-cover" />
+      {/* Animated Hero Background */}
+      <section className="relative w-full overflow-hidden">
+        <div className="hero-animated-bg w-full h-48 sm:h-64 lg:h-80">
+          {/* Floating geometric shapes */}
+          <div className="hero-shape hero-shape-1" />
+          <div className="hero-shape hero-shape-2" />
+          <div className="hero-shape hero-shape-3" />
+          <div className="hero-shape hero-shape-4" />
+          <div className="hero-grid" />
         </div>
       </section>
 
-      {/* Hero Text - separate from image */}
+      {/* Hero Text */}
       <section className="container px-4 py-8 text-center">
         <h1 className="font-display font-bold text-2xl sm:text-4xl lg:text-5xl leading-tight animate-fade-in-up">
           DREYPELLA <span className="text-accent">RIDE</span>
