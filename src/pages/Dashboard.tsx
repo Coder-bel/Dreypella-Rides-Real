@@ -4,12 +4,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
-const BANK_DETAILS = {
-  accountName: "Dreypella Ride Ltd",
-  accountNumber: "1234567890",
-  bank: "First Bank Nigeria",
-};
-
 interface DvaDetails {
   bank_name: string;
   account_number: string;
@@ -170,9 +164,16 @@ const Dashboard = () => {
                 <span className="ml-2 text-sm text-muted-foreground">Setting up your virtual account...</span>
               </div>
             ) : dvaError ? (
-              <div className="bg-destructive/10 text-destructive text-sm px-4 py-3 rounded-xl">
-                <p>{dvaError}</p>
-                <button onClick={createDva} className="mt-2 text-accent font-semibold underline text-xs">Try Again</button>
+              <div className="bg-accent/10 text-foreground text-sm px-4 py-3 rounded-xl space-y-2">
+                <p className="font-semibold text-accent">⚠️ Virtual Account Not Yet Available</p>
+                <p className="text-xs text-muted-foreground">
+                  Your Paystack business account needs to be approved for Dedicated Virtual Accounts (DVAs). 
+                  Please email <strong>support@paystack.com</strong> to request DVA activation for your business.
+                </p>
+                <p className="text-xs text-muted-foreground">Once approved, click below to set up your account.</p>
+                <button onClick={createDva} className="mt-1 bg-accent text-accent-foreground px-3 py-1.5 rounded-lg font-semibold text-xs hover:scale-105 transition-transform">
+                  Retry Setup
+                </button>
               </div>
             ) : dva ? (
               <div className="bg-secondary rounded-xl p-4 space-y-3">
