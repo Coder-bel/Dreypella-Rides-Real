@@ -177,6 +177,10 @@ const Dashboard = () => {
               </div>
             ) : dva ? (
               <div className="bg-secondary rounded-xl p-4 space-y-3">
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 text-xs text-center">
+                  <p className="font-semibold text-yellow-600">🧪 Test Mode</p>
+                  <p className="text-muted-foreground">Use the demo bank app to simulate transfers</p>
+                </div>
                 <p className="text-sm font-semibold text-center">Transfer to your dedicated account:</p>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
@@ -201,10 +205,18 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
+                <a
+                  href="https://demobank.paystackintegrations.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full bg-accent text-accent-foreground text-center py-2 rounded-lg font-semibold text-sm hover:scale-105 transition-transform"
+                >
+                  Open Demo Bank to Simulate Transfer
+                </a>
                 <div className="bg-accent/10 rounded-lg p-3 text-xs text-center space-y-1">
                   <p className="font-semibold text-accent">How to Fund</p>
                   <p className="text-muted-foreground">
-                    Transfer any amount (min ₦100) to this account via bank app, USSD, or mobile transfer.
+                    Transfer any amount (min ₦100) to the account above using the Paystack Demo Bank app.
                     Your wallet will be credited automatically once confirmed.
                   </p>
                 </div>

@@ -81,7 +81,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         customer: customerCode,
-        preferred_bank: "wema-bank",
+        preferred_bank: "test-bank",
       }),
     });
 
