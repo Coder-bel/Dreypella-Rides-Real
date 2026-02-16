@@ -4,6 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
+const BANK_DETAILS = {
+  accountName: "Dreypella Ride Ltd",
+  accountNumber: "1234567890",
+  bank: "First Bank Nigeria",
+};
+
 interface DvaDetails {
   bank_name: string;
   account_number: string;
