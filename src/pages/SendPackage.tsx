@@ -1,12 +1,17 @@
+/**
+ * Payments are manual via Opay transfer. Admin verifies manually and updates booking status to 'Confirmed'.
+ */
 import { useState } from "react";
 import { Package, CheckCircle } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import PaymentModal from "@/components/PaymentModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
 
-const packageTypes = ["Small Envelope", "Medium Box", "Large Box", "Electronics", "Documents"];
-const locations = ["LAUTECH Gate", "Under G", "General Hospital Area", "Sabo Area", "Iwo Road (Ibadan)", "Bodija (Ibadan)", "Berger (Lagos)", "Yaba (Lagos)", "Ikeja (Lagos)", "Ojota (Lagos)"];
+const packageTypes = ["Small Envelope", "Medium Box", "Large Box", "Electronics", "Documents", "Other"];
+
+const generateTrackingId = () =>
+  "DRP-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
 
 const SendPackage = () => {
   const { user } = useAuth();
@@ -14,68 +19,33 @@ const SendPackage = () => {
     packageType: "",
     pickup: "",
     dropoff: "",
+    senderName: "",
     senderPhone: "",
+    receiverName: "",
     receiverPhone: "",
     delivery: "next-day",
   });
+  const [showPayment, setShowPayment] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [trackingId, setTrackingId] = useState("");
   const [error, setError] = useState("");
 
-  const price = form.delivery === "same-day" ? 3500 : 2000;
-
   const handleChange = (field: string, value: string) => {
     setForm((f) => ({ ...f, [field]: value }));
   };
 
-  const generateTrackingId = () => {
-    return "DRP-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowPayment(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleConfirmPaid = async () => {
     if (!user) return;
     setLoading(true);
     setError("");
 
-    // Check wallet balance
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("wallet_balance")
-      .eq("user_id", user.id)
-      .single();
-
-    const balance = profile?.wallet_balance || 0;
-
-    if (balance < price) {
-      setError(`Insufficient wallet balance (₦${balance.toLocaleString()}). Please fund your wallet first.`);
-      setLoading(false);
-      return;
-    }
-
-    // Deduct from wallet
-    const newBalance = balance - price;
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ wallet_balance: newBalance })
-      .eq("user_id", user.id);
-
-    if (updateError) {
-      setError("Failed to process payment. Please try again.");
-      setLoading(false);
-      return;
-    }
-
     const id = generateTrackingId();
-
-    // Record wallet transaction
-    await supabase.from("wallet_transactions").insert({
-      user_id: user.id,
-      amount: -price,
-      type: "dispatch_payment",
-      reference: `Dispatch: ${form.pickup} → ${form.dropoff}`,
-    });
 
     const { error: dbError } = await supabase.from("dispatches").insert({
       user_id: user.id,
@@ -86,19 +56,18 @@ const SendPackage = () => {
       sender_phone: form.senderPhone,
       receiver_phone: form.receiverPhone,
       delivery_type: form.delivery,
-      price,
-      status: "pending",
+      price: 0,
+      status: "pending_payment",
     });
 
     if (dbError) {
-      // Refund on failure
-      await supabase.from("profiles").update({ wallet_balance: balance }).eq("user_id", user.id);
       setError("Failed to save dispatch. Please try again.");
       setLoading(false);
       return;
     }
 
     setTrackingId(id);
+    setShowPayment(false);
     setLoading(false);
     setSubmitted(true);
   };
@@ -109,16 +78,18 @@ const SendPackage = () => {
         <div className="bg-card rounded-2xl p-8 border max-w-md mx-auto">
           <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
           <h2 className="font-display font-bold text-xl mb-2">Package Booked!</h2>
-          <p className="text-sm text-muted-foreground mb-4">Payment deducted from your wallet.</p>
+          <p className="text-sm text-muted-foreground mb-4">Payment status: Pending Verification</p>
           <div className="bg-secondary rounded-lg p-4 text-left text-sm space-y-1 mb-4">
             <p><span className="font-medium">Tracking ID:</span> <span className="font-mono text-accent font-bold">{trackingId}</span></p>
             <p><span className="font-medium">Package:</span> {form.packageType}</p>
             <p><span className="font-medium">From:</span> {form.pickup}</p>
             <p><span className="font-medium">To:</span> {form.dropoff}</p>
+            <p><span className="font-medium">Sender:</span> {form.senderName} ({form.senderPhone})</p>
+            <p><span className="font-medium">Receiver:</span> {form.receiverName} ({form.receiverPhone})</p>
             <p><span className="font-medium">Delivery:</span> {form.delivery === "same-day" ? "Same Day" : "Next Day"}</p>
-            <p className="font-bold text-accent">Price: ₦{price.toLocaleString()}</p>
+            <p className="font-semibold text-accent">Status: Pending Verification</p>
           </div>
-          <p className="text-xs text-muted-foreground">Save your tracking ID. We'll notify you on WhatsApp.</p>
+          <p className="text-xs text-muted-foreground">📦 Show this invoice when dropping off package. We'll notify you on WhatsApp.</p>
         </div>
       </div>
     );
@@ -132,15 +103,10 @@ const SendPackage = () => {
       {error && (
         <div className="bg-destructive/10 text-destructive text-sm px-4 py-2 rounded-xl mb-4 animate-shake">
           {error}
-          {error.includes("Insufficient") && (
-            <Link to="/dashboard" className="block mt-2 text-accent font-semibold underline text-xs">
-              → Go to Dashboard to fund wallet
-            </Link>
-          )}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in-up-delay-2">
+      <form onSubmit={handleFormSubmit} className="space-y-4 animate-fade-in-up-delay-2">
         <div>
           <label className="block text-sm font-medium mb-1.5">Package Type</label>
           <select value={form.packageType} onChange={(e) => handleChange("packageType", e.target.value)} required className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
@@ -151,24 +117,29 @@ const SendPackage = () => {
 
         <div>
           <label className="block text-sm font-medium mb-1.5">Pickup Location</label>
-          <select value={form.pickup} onChange={(e) => handleChange("pickup", e.target.value)} required className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
-            <option value="">Select pickup</option>
-            {locations.map((l) => <option key={l} value={l}>{l}</option>)}
-          </select>
+          <input type="text" value={form.pickup} onChange={(e) => handleChange("pickup", e.target.value)} required placeholder="e.g. LAUTECH Gate, Ogbomoso" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1.5">Dropoff Location</label>
-          <select value={form.dropoff} onChange={(e) => handleChange("dropoff", e.target.value)} required className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
-            <option value="">Select dropoff</option>
-            {locations.filter((l) => l !== form.pickup).map((l) => <option key={l} value={l}>{l}</option>)}
-          </select>
+          <label className="block text-sm font-medium mb-1.5">Delivery Location</label>
+          <input type="text" value={form.dropoff} onChange={(e) => handleChange("dropoff", e.target.value)} required placeholder="e.g. Iwo Road, Ibadan" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
+            <label className="block text-sm font-medium mb-1.5">Sender Name</label>
+            <input type="text" value={form.senderName} onChange={(e) => handleChange("senderName", e.target.value)} required placeholder="Full name" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+          </div>
+          <div>
             <label className="block text-sm font-medium mb-1.5">Sender Phone</label>
             <input type="tel" value={form.senderPhone} onChange={(e) => handleChange("senderPhone", e.target.value)} required placeholder="080..." className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Receiver Name</label>
+            <input type="text" value={form.receiverName} onChange={(e) => handleChange("receiverName", e.target.value)} required placeholder="Full name" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Receiver Phone</label>
@@ -180,8 +151,8 @@ const SendPackage = () => {
           <label className="block text-sm font-medium mb-2">Delivery Speed</label>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { value: "next-day", label: "Next Day", price: "₦2,000" },
-              { value: "same-day", label: "Same Day", price: "₦3,500" },
+              { value: "next-day", label: "Next Day" },
+              { value: "same-day", label: "Same Day" },
             ].map((opt) => (
               <label
                 key={opt.value}
@@ -191,29 +162,23 @@ const SendPackage = () => {
               >
                 <input type="radio" name="delivery" value={opt.value} checked={form.delivery === opt.value} onChange={(e) => handleChange("delivery", e.target.value)} className="sr-only" />
                 <span className="text-sm font-semibold">{opt.label}</span>
-                <span className="text-xs text-accent font-bold">{opt.price}</span>
               </label>
             ))}
           </div>
         </div>
 
-        <div className="bg-secondary rounded-xl p-4 text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Estimated Price</p>
-          <p className="text-2xl font-display font-bold text-accent">₦{price.toLocaleString()}</p>
-          <p className="text-xs text-muted-foreground mt-1">💳 Will be deducted from wallet</p>
-        </div>
-
-        <button type="submit" disabled={loading} className="w-full bg-accent hover:bg-red-brand-light text-accent-foreground font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] disabled:opacity-60 flex items-center justify-center gap-2">
-          {loading ? (
-            <div className="w-5 h-5 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin" />
-          ) : (
-            <>
-              <Package size={18} />
-              Pay & Send Package
-            </>
-          )}
+        <button type="submit" className="w-full bg-accent hover:bg-red-brand-light text-accent-foreground font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2">
+          <Package size={18} />
+          Proceed to Payment
         </button>
       </form>
+
+      <PaymentModal
+        open={showPayment}
+        onClose={() => setShowPayment(false)}
+        onConfirmPaid={handleConfirmPaid}
+        loading={loading}
+      />
 
       <WhatsAppButton />
     </div>
