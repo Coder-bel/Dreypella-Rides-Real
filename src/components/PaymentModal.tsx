@@ -9,6 +9,8 @@ interface PaymentModalProps {
   onClose: () => void;
   onConfirmPaid: () => void;
   loading?: boolean;
+  totalPrice?: number;
+  remark?: string;
 }
 
 const ACCOUNT_DETAILS = {
@@ -17,7 +19,7 @@ const ACCOUNT_DETAILS = {
   number: "9160581948",
 };
 
-const PaymentModal = ({ open, onClose, onConfirmPaid, loading }: PaymentModalProps) => {
+const PaymentModal = ({ open, onClose, onConfirmPaid, loading, totalPrice, remark }: PaymentModalProps) => {
   const [copied, setCopied] = useState("");
 
   if (!open) return null;
@@ -37,6 +39,13 @@ const PaymentModal = ({ open, onClose, onConfirmPaid, loading }: PaymentModalPro
             <X size={18} />
           </button>
         </div>
+
+        {totalPrice != null && (
+          <div className="bg-accent/10 rounded-xl p-4 text-center mb-4">
+            <p className="text-xs text-muted-foreground mb-1">Total to pay</p>
+            <p className="text-2xl font-display font-bold text-accent">₦{totalPrice.toLocaleString()}</p>
+          </div>
+        )}
 
         <p className="text-sm text-muted-foreground mb-4">
           Make payment to the account below via Opay app, bank transfer, or USSD.
@@ -68,7 +77,7 @@ const PaymentModal = ({ open, onClose, onConfirmPaid, loading }: PaymentModalPro
 
         <div className="bg-accent/10 rounded-lg p-3 text-xs text-center mb-4">
           <p className="text-muted-foreground">
-            Use your <strong>full name + booking reference</strong> as remark/narration for easy verification.
+            Remark/Narration: <strong>{remark || "Your full name + booking reference"}</strong>
           </p>
         </div>
 
