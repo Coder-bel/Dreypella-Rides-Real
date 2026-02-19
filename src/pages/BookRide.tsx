@@ -1,5 +1,7 @@
 /**
  * Payments are manual via Opay transfer. Admin verifies manually and updates booking status to 'Confirmed'.
+ * Available pickup points, dates & times, and exact prices are placeholders/hardcoded for MVP.
+ * These will be managed dynamically from admin page later.
  */
 import { useState, useEffect } from "react";
 import { Bus, CheckCircle } from "lucide-react";
@@ -13,13 +15,47 @@ const routeOptions = cities.flatMap((from) =>
   cities.filter((to) => to !== from).map((to) => `${from} → ${to}`)
 );
 
+/** Available pickup points – hardcoded for MVP, will be managed via admin page later */
+const pickupPoints = [
+  "LAUTECH Gate",
+  "Under G",
+  "General Hospital Ogbomoso",
+  "Aaje Junction",
+  "Ogbomoso Garage",
+  "Iseyin Market",
+  "Oyo Town Hall",
+  "Ibadan Ojoo",
+  "Lagos Ojota",
+  "Other (specify in notes)",
+];
+
+/** Available dates/times – hardcoded for MVP, will be managed via admin page later */
+const tripSchedules = [
+  "Friday 20 Feb 2026 - 7:00 AM",
+  "Saturday 21 Feb 2026 - 8:00 AM",
+  "Sunday 22 Feb 2026 - 6:30 AM",
+  "Monday 23 Feb 2026 - 7:30 AM",
+  "Tuesday 24 Feb 2026 - 7:00 AM",
+];
+
+/** Route-based pricing – hardcoded for MVP */
+const getRoutePrice = (route: string): number => {
+  const r = route.toLowerCase();
+  if (r.includes("lagos")) return 4000;
+  if (r.includes("ibadan")) return 2500;
+  if (r.includes("ogbomoso") && r.includes("iseyin")) return 1500;
+  if (r.includes("ogbomoso") && r.includes("oyo")) return 1500;
+  if (r.includes("iseyin") && r.includes("oyo")) return 1000;
+  return 2000;
+};
+
 const generateRef = () =>
   "DR-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
 
 const BookRide = () => {
   const { user } = useAuth();
   const [route, setRoute] = useState("");
-  const [date, setDate] = useState("");
+  const [tripDate, setTripDate] = useState("");
   const [pickup, setPickup] = useState("");
   const [seats, setSeats] = useState(1);
   const [fullName, setFullName] = useState("");
@@ -51,13 +87,15 @@ const BookRide = () => {
 
     const ref = generateRef();
 
+    const totalPrice = getRoutePrice(route) * seats;
+
     const { error: dbError } = await supabase.from("bookings").insert({
       user_id: user.id,
       route,
-      travel_date: date,
+      travel_date: tripDate,
       pickup,
       passengers: seats,
-      price: 0,
+      price: totalPrice,
       status: "pending_payment",
     });
 
@@ -85,7 +123,7 @@ const BookRide = () => {
             <p><span className="font-medium">Name:</span> {fullName}</p>
             <p><span className="font-medium">Phone:</span> {phone}</p>
             <p><span className="font-medium">Route:</span> {route}</p>
-            <p><span className="font-medium">Date:</span> {date}</p>
+            <p><span className="font-medium">Date/Time:</span> {tripDate}</p>
             <p><span className="font-medium">Pickup:</span> {pickup}</p>
             <p><span className="font-medium">Seats:</span> {seats}</p>
             <p className="font-semibold text-accent">Status: Pending Verification</p>
@@ -119,13 +157,23 @@ const BookRide = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1.5">Travel Date</label>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required min={new Date().toISOString().split("T")[0]} className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+          <label className="block text-sm font-medium mb-1.5">Travel Date & Time</label>
+          <select value={tripDate} onChange={(e) => setTripDate(e.target.value)} required className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
+            <option value="">Select date & time</option>
+            {tripSchedules.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1.5">Pickup Location</label>
-          <input type="text" value={pickup} onChange={(e) => setPickup(e.target.value)} required placeholder="e.g. LAUTECH Gate, Under G, Iseyin Market" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+          <label className="block text-sm font-medium mb-1.5">Pickup Point</label>
+          <select value={pickup} onChange={(e) => setPickup(e.target.value)} required className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
+            <option value="">Select pickup point</option>
+            {pickupPoints.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -158,6 +206,8 @@ const BookRide = () => {
         onClose={() => setShowPayment(false)}
         onConfirmPaid={handleConfirmPaid}
         loading={loading}
+        totalPrice={route ? getRoutePrice(route) * seats : undefined}
+        remark={`${fullName} + Booking Ref`}
       />
 
       <WhatsAppButton />
