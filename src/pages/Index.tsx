@@ -1,33 +1,12 @@
+/**
+ * Payments are manual via Opay transfer. Admin verifies manually and updates booking status to 'Confirmed'.
+ */
 import { Link } from "react-router-dom";
-import { Bus, Package, ArrowRight, MapPin, LogIn } from "lucide-react";
-import CountdownTimer from "@/components/CountdownTimer";
-import TestimonialCard from "@/components/TestimonialCard";
+import { Bus, Package, ArrowRight, MapPin, LogIn, Truck, Shield } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAuth } from "@/hooks/useAuth";
 
-const routes = [
-  { from: "Ogbomoso", to: "Lagos", price: "₦4,000" },
-  { from: "Ogbomoso", to: "Ibadan", price: "₦2,500" },
-  { from: "Ibadan", to: "Lagos", price: "₦3,000" },
-];
-
-const testimonials = [
-  {
-    name: "Tunde A.",
-    department: "Computer Science, 400L",
-    text: "Dreypella Ride is a lifesaver! I book my trips to Lagos right from hostel. No stress, no wahala.",
-  },
-  {
-    name: "Blessing O.",
-    department: "Nursing, 300L",
-    text: "I sent a package to my mum in Ibadan and she got it same day. The tracking number was very helpful!",
-  },
-  {
-    name: "Emeka C.",
-    department: "Engineering, 500L",
-    text: "The prices are student-friendly and the buses are always clean. I don't use any other service again.",
-  },
-];
+const cities = ["Lagos", "Ibadan", "Ogbomoso", "Iseyin", "Oyo"];
 
 const Index = () => {
   const { user } = useAuth();
@@ -37,7 +16,6 @@ const Index = () => {
       {/* Animated Hero Background */}
       <section className="relative w-full overflow-hidden">
         <div className="hero-animated-bg w-full h-48 sm:h-64 lg:h-80">
-          {/* Floating geometric shapes */}
           <div className="hero-shape hero-shape-1" />
           <div className="hero-shape hero-shape-2" />
           <div className="hero-shape hero-shape-3" />
@@ -51,22 +29,15 @@ const Index = () => {
         <h1 className="font-display font-bold text-2xl sm:text-4xl lg:text-5xl leading-tight animate-fade-in-up">
           DREYPELLA <span className="text-accent">RIDE</span>
         </h1>
-        <p className="text-muted-foreground text-sm sm:text-base mt-2 max-w-md mx-auto animate-fade-in-up-delay-1">
-          Affordable Student Transport & Dispatch for LAUTECH
+        <p className="text-muted-foreground text-sm sm:text-base mt-2 max-w-lg mx-auto animate-fade-in-up-delay-1">
+          Reliable Inter-City Travel & Package Delivery Across Oyo State
         </p>
-        <p className="text-muted-foreground/60 text-xs sm:text-sm mt-1 animate-fade-in-up-delay-1">
-          Ogbomoso ↔ Ibadan ↔ Lagos — Reliable, Cheap, Student-Focused
+        <p className="text-muted-foreground/60 text-xs sm:text-sm mt-1 max-w-md mx-auto animate-fade-in-up-delay-1">
+          Safe, affordable, and convenient rides and deliveries connecting Lagos, Ibadan, Ogbomoso, Iseyin, and Oyo. Book now for your next trip or send packages hassle-free.
         </p>
-
-        {/* Price badge */}
-        <div className="mt-5 animate-fade-in-up-delay-2">
-          <span className="inline-block bg-accent text-accent-foreground text-sm font-bold px-4 py-1.5 rounded-full animate-pulse-red">
-            From ₦4,000
-          </span>
-        </div>
 
         {/* CTA buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6 animate-fade-in-up-delay-3">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6 animate-fade-in-up-delay-2">
           {user ? (
             <>
               <Link
@@ -91,51 +62,64 @@ const Index = () => {
               className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-red-brand-light text-accent-foreground font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
             >
               <LogIn size={18} />
-              Log In to Book
+              Get Started – Book or Send
               <ArrowRight size={16} />
             </Link>
           )}
         </div>
       </section>
 
-      {/* Countdown */}
-      <section className="container px-4 relative z-10">
-        <CountdownTimer />
-      </section>
-
-      {/* Routes */}
-      <section className="container px-4 mt-8">
-        <h2 className="font-display font-bold text-lg mb-4 animate-fade-in-up">Popular Routes</h2>
-        <div className="grid gap-3">
-          {routes.map((r, i) => (
-            <Link
-              key={i}
-              to={user ? "/book-ride" : "/auth"}
-              className="flex items-center justify-between bg-card rounded-xl p-4 border hover-lift animate-fade-in-up"
+      {/* Features */}
+      <section className="container px-4 mt-4">
+        <div className="grid sm:grid-cols-3 gap-4">
+          {[
+            { icon: Bus, title: "Inter-City Rides", desc: "Comfortable AC buses across 5 cities in Oyo State and Lagos" },
+            { icon: Truck, title: "Package Delivery", desc: "Same-day & next-day dispatch between all routes" },
+            { icon: Shield, title: "Safe & Reliable", desc: "Trusted by students and travelers across the region" },
+          ].map((f, i) => (
+            <div
+              key={f.title}
+              className="bg-card rounded-xl p-5 border text-center hover-lift animate-fade-in-up"
               style={{ animationDelay: `${i * 0.1}s` }}
             >
-              <div className="flex items-center gap-3">
-                <div className="bg-secondary rounded-lg p-2">
-                  <MapPin size={16} className="text-accent" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">{r.from} → {r.to}</p>
-                  <p className="text-xs text-muted-foreground">AC Bus • Direct</p>
-                </div>
+              <div className="bg-secondary rounded-lg p-3 w-fit mx-auto mb-3">
+                <f.icon size={24} className="text-accent" />
               </div>
-              <span className="font-display font-bold text-accent text-sm">{r.price}</span>
-            </Link>
+              <h3 className="font-display font-bold text-sm mb-1">{f.title}</h3>
+              <p className="text-xs text-muted-foreground">{f.desc}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="container px-4 mt-10">
-        <h2 className="font-display font-bold text-lg mb-4">What Students Say</h2>
-        <div className="grid sm:grid-cols-3 gap-3">
-          {testimonials.map((t, i) => (
-            <TestimonialCard key={i} {...t} delay={i * 0.15} />
+      {/* Cities We Cover */}
+      <section className="container px-4 mt-8">
+        <h2 className="font-display font-bold text-lg mb-4 animate-fade-in-up">Cities We Cover</h2>
+        <div className="flex flex-wrap gap-2 justify-center animate-fade-in-up-delay-1">
+          {cities.map((city, i) => (
+            <span
+              key={city}
+              className="inline-flex items-center gap-1.5 bg-card border rounded-full px-4 py-2 text-sm font-medium hover-lift"
+              style={{ animationDelay: `${i * 0.08}s` }}
+            >
+              <MapPin size={14} className="text-accent" />
+              {city}
+            </span>
           ))}
+        </div>
+        <p className="text-center text-xs text-muted-foreground mt-3 animate-fade-in-up-delay-2">
+          All routes available in both directions
+        </p>
+      </section>
+
+      {/* Next Trip Info */}
+      <section className="container px-4 mt-8">
+        <div className="bg-card rounded-xl p-5 border text-center animate-fade-in-up-delay-2">
+          <p className="text-sm font-medium text-muted-foreground mb-1">🚌 Next trips available daily</p>
+          <p className="font-display font-bold text-lg">Seats available – Book now!</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Lagos ↔ Ibadan ↔ Ogbomoso ↔ Iseyin ↔ Oyo
+          </p>
         </div>
       </section>
 
