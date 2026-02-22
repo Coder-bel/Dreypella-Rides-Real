@@ -4,7 +4,7 @@
  * These will be managed dynamically from admin page later.
  */
 import { useState, useEffect } from "react";
-import { Bus, CheckCircle } from "lucide-react";
+import { Bus, CheckCircle, MessageCircle } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentModal from "@/components/PaymentModal";
 import { useAuth } from "@/hooks/useAuth";
@@ -118,8 +118,11 @@ const BookRide = () => {
           <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
           <h2 className="font-display font-bold text-xl mb-2">Booking Submitted!</h2>
           <p className="text-sm text-muted-foreground mb-4">Payment status: Pending Verification</p>
+          <div className="bg-accent/10 rounded-xl p-4 text-center mb-4">
+            <p className="text-xs text-muted-foreground mb-1">Your Booking Reference</p>
+            <p className="text-2xl font-mono font-bold text-accent">{bookingRef}</p>
+          </div>
           <div className="bg-secondary rounded-lg p-4 text-left text-sm space-y-1 mb-4">
-            <p><span className="font-medium">Booking Ref:</span> <span className="font-mono text-accent font-bold">{bookingRef}</span></p>
             <p><span className="font-medium">Name:</span> {fullName}</p>
             <p><span className="font-medium">Phone:</span> {phone}</p>
             <p><span className="font-medium">Route:</span> {route}</p>
@@ -128,7 +131,16 @@ const BookRide = () => {
             <p><span className="font-medium">Seats:</span> {seats}</p>
             <p className="font-semibold text-accent">Status: Pending Verification</p>
           </div>
-          <p className="text-xs text-muted-foreground">🎟️ Show this at the bus for boarding. You'll be confirmed on WhatsApp shortly.</p>
+          <p className="text-xs text-muted-foreground mb-4">🎟️ Show this at the bus for boarding. Payment verification may take up to 1 hour.</p>
+          <a
+            href={`https://wa.me/2349039029914?text=${encodeURIComponent(`Hi, I just made payment for booking ${bookingRef}. Name: ${fullName}. Please confirm.`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
+          >
+            <MessageCircle size={18} fill="white" />
+            Send Payment Proof → WhatsApp
+          </a>
         </div>
       </div>
     );
