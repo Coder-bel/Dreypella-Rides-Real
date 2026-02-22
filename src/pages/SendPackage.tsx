@@ -2,7 +2,7 @@
  * Payments are manual via Opay transfer. Admin verifies manually and updates booking status to 'Confirmed'.
  */
 import { useState } from "react";
-import { Package, CheckCircle } from "lucide-react";
+import { Package, CheckCircle, MessageCircle } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentModal from "@/components/PaymentModal";
 import { useAuth } from "@/hooks/useAuth";
@@ -79,8 +79,11 @@ const SendPackage = () => {
           <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
           <h2 className="font-display font-bold text-xl mb-2">Package Booked!</h2>
           <p className="text-sm text-muted-foreground mb-4">Payment status: Pending Verification</p>
+          <div className="bg-accent/10 rounded-xl p-4 text-center mb-4">
+            <p className="text-xs text-muted-foreground mb-1">Your Tracking ID</p>
+            <p className="text-2xl font-mono font-bold text-accent">{trackingId}</p>
+          </div>
           <div className="bg-secondary rounded-lg p-4 text-left text-sm space-y-1 mb-4">
-            <p><span className="font-medium">Tracking ID:</span> <span className="font-mono text-accent font-bold">{trackingId}</span></p>
             <p><span className="font-medium">Package:</span> {form.packageType}</p>
             <p><span className="font-medium">From:</span> {form.pickup}</p>
             <p><span className="font-medium">To:</span> {form.dropoff}</p>
@@ -89,7 +92,16 @@ const SendPackage = () => {
             <p><span className="font-medium">Delivery:</span> {form.delivery === "same-day" ? "Same Day" : "Next Day"}</p>
             <p className="font-semibold text-accent">Status: Pending Verification</p>
           </div>
-          <p className="text-xs text-muted-foreground">📦 Show this invoice when dropping off package. We'll notify you on WhatsApp.</p>
+          <p className="text-xs text-muted-foreground mb-4">📦 Show this invoice when dropping off package. Payment verification may take up to 1 hour.</p>
+          <a
+            href={`https://wa.me/2349039029914?text=${encodeURIComponent(`Hi, I just made payment for dispatch ${trackingId}. Sender: ${form.senderName}. Please confirm.`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
+          >
+            <MessageCircle size={18} fill="white" />
+            Send Payment Proof → WhatsApp
+          </a>
         </div>
       </div>
     );

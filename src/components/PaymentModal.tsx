@@ -75,9 +75,16 @@ const PaymentModal = ({ open, onClose, onConfirmPaid, loading, totalPrice, remar
           </div>
         </div>
 
-        <div className="bg-accent/10 rounded-lg p-3 text-xs text-center mb-4">
-          <p className="text-muted-foreground">
-            Remark/Narration: <strong>{remark || "Your full name + booking reference"}</strong>
+        <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 text-xs mb-4 space-y-2">
+          <p className="font-bold text-destructive text-sm text-center">⚠️ Important</p>
+          <p className="text-foreground text-center">
+            When making the transfer, you <strong>MUST</strong> include your <strong>full name + reference code</strong> in the remark/narration field:
+          </p>
+          <p className="font-mono font-bold text-accent text-center text-sm bg-background rounded-lg py-2">
+            {remark || "Your full name + booking reference"}
+          </p>
+          <p className="text-muted-foreground text-center">
+            This is how we verify your payment quickly.
           </p>
         </div>
 
