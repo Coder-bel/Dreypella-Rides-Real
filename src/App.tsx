@@ -6,10 +6,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import Index from "./pages/Index";
 import BookRide from "./pages/BookRide";
 import SendPackage from "./pages/SendPackage";
 import Dashboard from "./pages/Dashboard";
+import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +31,7 @@ const App = () => (
               <Route path="/book-ride" element={<ProtectedRoute><BookRide /></ProtectedRoute>} />
               <Route path="/send-package" element={<ProtectedRoute><SendPackage /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
