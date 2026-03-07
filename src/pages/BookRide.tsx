@@ -4,6 +4,7 @@
  */
 import { useState, useEffect } from "react";
 import { Bus, CheckCircle, MessageCircle } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentModal from "@/components/PaymentModal";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,15 +39,24 @@ const BookRide = () => {
   const [bookingRef, setBookingRef] = useState("");
 
   // Fetch active trips
-  useEffect(() => {
-    supabase
+  const fetchTrips = async () => {
+    const { data } = await supabase
       .from("trips")
       .select("*")
       .eq("is_active", true)
-      .order("travel_date", { ascending: true })
-      .then(({ data }) => {
-        if (data) setTrips(data as Trip[]);
-      });
+      .order("travel_date", { ascending: true });
+    if (data) setTrips(data as Trip[]);
+  };
+
+  useEffect(() => { fetchTrips(); }, []);
+
+  // Real-time subscription for trips
+  useEffect(() => {
+    const channel = supabase
+      .channel("user-trips-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, () => fetchTrips())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   // Pre-fill from profile
@@ -104,6 +114,16 @@ const BookRide = () => {
       setLoading(false);
       return;
     }
+
+    // Decrement available seats; auto-deactivate if fully booked
+    const newSeats = selectedTrip.available_seats - seats;
+    await supabase
+      .from("trips")
+      .update({
+        available_seats: newSeats,
+        is_active: newSeats > 0,
+      })
+      .eq("id", selectedTrip.id);
 
     setBookingRef(ref);
     setShowPayment(false);
@@ -165,7 +185,15 @@ const BookRide = () => {
       {trips.length === 0 ? (
         <div className="bg-card rounded-2xl p-8 border text-center">
           <Bus size={32} className="mx-auto text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">No trips available right now. Check back later!</p>
+          <p className="text-sm text-muted-foreground mb-4">No trips available right now. Check back later or contact us on WhatsApp.</p>
+          <a
+            href="https://wa.me/2349039029914?text=Hi%2C%20I%20want%20to%20know%20about%20available%20trips"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#25D366] text-white text-sm font-medium hover:bg-[#20BD5A] transition-colors"
+          >
+            <MessageCircle size={16} fill="white" /> Contact on WhatsApp
+          </a>
         </div>
       ) : (
         <form onSubmit={handleFormSubmit} className="space-y-4 animate-fade-in-up-delay-2">
@@ -194,11 +222,14 @@ const BookRide = () => {
                 className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all"
               >
                 <option value="">Select date & time</option>
-                {tripsForRoute.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.travel_date} - {t.departure_time} ({t.available_seats} seats • ₦{t.price.toLocaleString()})
-                  </option>
-                ))}
+                {tripsForRoute.map((t) => {
+                  const dateLabel = format(parseISO(t.travel_date), "EEEE dd MMM yyyy");
+                  return (
+                    <option key={t.id} value={t.id}>
+                      {dateLabel} - {t.departure_time} ({t.available_seats} seats left • ₦{t.price.toLocaleString()})
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}
