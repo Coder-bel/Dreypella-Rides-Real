@@ -241,18 +241,9 @@ const Admin = () => {
             </div>
           </TabsContent>
 
-          {/* === TRIPS TAB (placeholder for MVP) === */}
+          {/* === TRIPS TAB === */}
           <TabsContent value="trips">
-            <div className="bg-white/5 rounded-xl border border-white/10 p-6 text-center">
-              <Clock size={32} className="mx-auto text-white/30 mb-3" />
-              <h3 className="font-display font-semibold text-base mb-2">Manage Trips & Availability</h3>
-              <p className="text-sm text-white/40 mb-4">
-                Add/edit trip schedules, routes, pickup points, and available seats.
-              </p>
-              <p className="text-xs text-white/30 bg-white/5 rounded-lg p-3 inline-block">
-                🚧 Coming soon — Currently using hardcoded trip data. Will move to a database table for dynamic management.
-              </p>
-            </div>
+            <TripsManager />
           </TabsContent>
         </Tabs>
       </div>
