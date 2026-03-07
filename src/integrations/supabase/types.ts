@@ -131,6 +131,42 @@ export type Database = {
         }
         Relationships: []
       }
+      trips: {
+        Row: {
+          available_seats: number
+          created_at: string
+          departure_time: string
+          id: string
+          is_active: boolean
+          pickup_points: string[]
+          price: number
+          route: string
+          travel_date: string
+        }
+        Insert: {
+          available_seats?: number
+          created_at?: string
+          departure_time: string
+          id?: string
+          is_active?: boolean
+          pickup_points?: string[]
+          price?: number
+          route: string
+          travel_date: string
+        }
+        Update: {
+          available_seats?: number
+          created_at?: string
+          departure_time?: string
+          id?: string
+          is_active?: boolean
+          pickup_points?: string[]
+          price?: number
+          route?: string
+          travel_date?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
