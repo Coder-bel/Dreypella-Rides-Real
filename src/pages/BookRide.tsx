@@ -38,15 +38,24 @@ const BookRide = () => {
   const [bookingRef, setBookingRef] = useState("");
 
   // Fetch active trips
-  useEffect(() => {
-    supabase
+  const fetchTrips = async () => {
+    const { data } = await supabase
       .from("trips")
       .select("*")
       .eq("is_active", true)
-      .order("travel_date", { ascending: true })
-      .then(({ data }) => {
-        if (data) setTrips(data as Trip[]);
-      });
+      .order("travel_date", { ascending: true });
+    if (data) setTrips(data as Trip[]);
+  };
+
+  useEffect(() => { fetchTrips(); }, []);
+
+  // Real-time subscription for trips
+  useEffect(() => {
+    const channel = supabase
+      .channel("user-trips-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, () => fetchTrips())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   // Pre-fill from profile
