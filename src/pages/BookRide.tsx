@@ -114,6 +114,16 @@ const BookRide = () => {
       return;
     }
 
+    // Decrement available seats; auto-deactivate if fully booked
+    const newSeats = selectedTrip.available_seats - seats;
+    await supabase
+      .from("trips")
+      .update({
+        available_seats: newSeats,
+        is_active: newSeats > 0,
+      })
+      .eq("id", selectedTrip.id);
+
     setBookingRef(ref);
     setShowPayment(false);
     setLoading(false);
@@ -174,7 +184,15 @@ const BookRide = () => {
       {trips.length === 0 ? (
         <div className="bg-card rounded-2xl p-8 border text-center">
           <Bus size={32} className="mx-auto text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">No trips available right now. Check back later!</p>
+          <p className="text-sm text-muted-foreground mb-4">No trips available right now. Check back later or contact us on WhatsApp.</p>
+          <a
+            href="https://wa.me/2349039029914?text=Hi%2C%20I%20want%20to%20know%20about%20available%20trips"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#25D366] text-white text-sm font-medium hover:bg-[#20BD5A] transition-colors"
+          >
+            <MessageCircle size={16} fill="white" /> Contact on WhatsApp
+          </a>
         </div>
       ) : (
         <form onSubmit={handleFormSubmit} className="space-y-4 animate-fade-in-up-delay-2">
