@@ -4,6 +4,7 @@
  */
 import { useState, useEffect } from "react";
 import { Bus, CheckCircle, MessageCircle } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentModal from "@/components/PaymentModal";
 import { useAuth } from "@/hooks/useAuth";
@@ -221,11 +222,14 @@ const BookRide = () => {
                 className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all"
               >
                 <option value="">Select date & time</option>
-                {tripsForRoute.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.travel_date} - {t.departure_time} ({t.available_seats} seats • ₦{t.price.toLocaleString()})
-                  </option>
-                ))}
+                {tripsForRoute.map((t) => {
+                  const dateLabel = format(parseISO(t.travel_date), "EEEE dd MMM yyyy");
+                  return (
+                    <option key={t.id} value={t.id}>
+                      {dateLabel} - {t.departure_time} ({t.available_seats} seats left • ₦{t.price.toLocaleString()})
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}
