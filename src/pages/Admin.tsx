@@ -245,6 +245,11 @@ const Admin = () => {
             </div>
           </TabsContent>
 
+          {/* === PAYMENTS TAB === */}
+          <TabsContent value="payments">
+            <PaymentsOverview />
+          </TabsContent>
+
           {/* === TRIPS TAB === */}
           <TabsContent value="trips">
             <TripsManager />
