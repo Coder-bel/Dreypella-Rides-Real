@@ -1,11 +1,19 @@
 /**
  * Payments are manual via Opay transfer. Admin verifies manually and updates booking status to 'Confirmed'.
+ * Friendly status messages update in real-time when admin changes payment status.
  */
 import { useState, useEffect } from "react";
 import { Bus, Package, Clock, LogOut, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+
+const friendlyStatus: Record<string, { label: string; color: string }> = {
+  pending_payment: { label: "Awaiting payment confirmation", color: "bg-yellow-500/10 text-yellow-600" },
+  confirmed: { label: "Payment confirmed – ready for your trip", color: "bg-blue-500/10 text-blue-600" },
+  completed: { label: "Trip completed – thank you!", color: "bg-green-500/10 text-green-600" },
+  cancelled: { label: "Booking cancelled", color: "bg-red-500/10 text-red-500" },
+};
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -87,7 +95,9 @@ const Dashboard = () => {
                       <p className="text-xs text-muted-foreground">{b.travel_date} • {b.pickup}</p>
                     </div>
                     <div className="text-right">
-                      <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${b.status === "confirmed" ? "bg-green-500/10 text-green-600" : "bg-accent/10 text-accent"}`}>{b.status.replace(/_/g, " ")}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${friendlyStatus[b.status]?.color || "bg-accent/10 text-accent"}`}>
+                        {friendlyStatus[b.status]?.label || b.status.replace(/_/g, " ")}
+                      </span>
                       <p className="text-xs text-muted-foreground mt-1">{daysLeft > 0 ? `${daysLeft}d left` : "Today"}</p>
                     </div>
                   </div>
@@ -109,7 +119,9 @@ const Dashboard = () => {
                   <p className="font-medium">{b.route}</p>
                   <p className="text-xs text-muted-foreground">{b.travel_date} • {b.pickup}</p>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${b.status === "confirmed" ? "bg-green-500/10 text-green-600" : "bg-accent/10 text-accent"}`}>{b.status.replace(/_/g, " ")}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${friendlyStatus[b.status]?.color || "bg-accent/10 text-accent"}`}>
+                  {friendlyStatus[b.status]?.label || b.status.replace(/_/g, " ")}
+                </span>
               </div>
             ))}
           </div>
@@ -149,7 +161,7 @@ const Dashboard = () => {
               <p><span className="text-muted-foreground">Date:</span> <span className="font-semibold">{selectedBooking.travel_date}</span></p>
               <p><span className="text-muted-foreground">Pickup:</span> <span className="font-semibold">{selectedBooking.pickup}</span></p>
               <p><span className="text-muted-foreground">Passengers:</span> <span className="font-semibold">{selectedBooking.passengers}</span></p>
-              <p><span className="text-muted-foreground">Status:</span> <span className="font-semibold capitalize">{selectedBooking.status.replace(/_/g, " ")}</span></p>
+              <p><span className="text-muted-foreground">Status:</span> <span className={`font-semibold ${friendlyStatus[selectedBooking.status]?.color?.split(" ")[1] || ""}`}>{friendlyStatus[selectedBooking.status]?.label || selectedBooking.status.replace(/_/g, " ")}</span></p>
             </div>
           </div>
         </div>

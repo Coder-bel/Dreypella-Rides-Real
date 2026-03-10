@@ -7,8 +7,9 @@
  */
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { CheckCircle, Package, Bus, ArrowLeft, LogOut, RefreshCw, MapPin, Clock, Users } from "lucide-react";
+import { CheckCircle, Package, Bus, ArrowLeft, LogOut, RefreshCw, MapPin, Clock, Users, CreditCard } from "lucide-react";
 import TripsManager from "@/components/admin/TripsManager";
+import PaymentsOverview from "@/components/admin/PaymentsOverview";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -117,6 +118,9 @@ const Admin = () => {
             </TabsTrigger>
             <TabsTrigger value="dispatches" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
               <Package size={16} className="mr-2" /> Packages ({dispatches.length})
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
+              <CreditCard size={16} className="mr-2" /> Payments
             </TabsTrigger>
             <TabsTrigger value="trips" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
               <Clock size={16} className="mr-2" /> Trips
@@ -239,6 +243,11 @@ const Admin = () => {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* === PAYMENTS TAB === */}
+          <TabsContent value="payments">
+            <PaymentsOverview />
           </TabsContent>
 
           {/* === TRIPS TAB === */}
