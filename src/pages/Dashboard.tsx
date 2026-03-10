@@ -1,11 +1,19 @@
 /**
  * Payments are manual via Opay transfer. Admin verifies manually and updates booking status to 'Confirmed'.
+ * Friendly status messages update in real-time when admin changes payment status.
  */
 import { useState, useEffect } from "react";
 import { Bus, Package, Clock, LogOut, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+
+const friendlyStatus: Record<string, { label: string; color: string }> = {
+  pending_payment: { label: "Awaiting payment confirmation", color: "bg-yellow-500/10 text-yellow-600" },
+  confirmed: { label: "Payment confirmed – ready for your trip", color: "bg-blue-500/10 text-blue-600" },
+  completed: { label: "Trip completed – thank you!", color: "bg-green-500/10 text-green-600" },
+  cancelled: { label: "Booking cancelled", color: "bg-red-500/10 text-red-500" },
+};
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
