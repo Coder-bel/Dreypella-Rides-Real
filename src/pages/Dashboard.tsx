@@ -161,7 +161,7 @@ const Dashboard = () => {
               <p><span className="text-muted-foreground">Date:</span> <span className="font-semibold">{selectedBooking.travel_date}</span></p>
               <p><span className="text-muted-foreground">Pickup:</span> <span className="font-semibold">{selectedBooking.pickup}</span></p>
               <p><span className="text-muted-foreground">Passengers:</span> <span className="font-semibold">{selectedBooking.passengers}</span></p>
-              <p><span className="text-muted-foreground">Status:</span> <span className="font-semibold capitalize">{selectedBooking.status.replace(/_/g, " ")}</span></p>
+              <p><span className="text-muted-foreground">Status:</span> <span className={`font-semibold ${friendlyStatus[selectedBooking.status]?.color?.split(" ")[1] || ""}`}>{friendlyStatus[selectedBooking.status]?.label || selectedBooking.status.replace(/_/g, " ")}</span></p>
             </div>
           </div>
         </div>
