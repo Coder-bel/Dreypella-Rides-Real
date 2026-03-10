@@ -7,8 +7,9 @@
  */
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { CheckCircle, Package, Bus, ArrowLeft, LogOut, RefreshCw, MapPin, Clock, Users } from "lucide-react";
+import { CheckCircle, Package, Bus, ArrowLeft, LogOut, RefreshCw, MapPin, Clock, Users, CreditCard } from "lucide-react";
 import TripsManager from "@/components/admin/TripsManager";
+import PaymentsOverview from "@/components/admin/PaymentsOverview";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
