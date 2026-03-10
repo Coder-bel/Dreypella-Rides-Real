@@ -119,7 +119,9 @@ const Dashboard = () => {
                   <p className="font-medium">{b.route}</p>
                   <p className="text-xs text-muted-foreground">{b.travel_date} • {b.pickup}</p>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${b.status === "confirmed" ? "bg-green-500/10 text-green-600" : "bg-accent/10 text-accent"}`}>{b.status.replace(/_/g, " ")}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${friendlyStatus[b.status]?.color || "bg-accent/10 text-accent"}`}>
+                  {friendlyStatus[b.status]?.label || b.status.replace(/_/g, " ")}
+                </span>
               </div>
             ))}
           </div>
