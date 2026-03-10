@@ -119,6 +119,9 @@ const Admin = () => {
             <TabsTrigger value="dispatches" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
               <Package size={16} className="mr-2" /> Packages ({dispatches.length})
             </TabsTrigger>
+            <TabsTrigger value="payments" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
+              <CreditCard size={16} className="mr-2" /> Payments
+            </TabsTrigger>
             <TabsTrigger value="trips" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
               <Clock size={16} className="mr-2" /> Trips
             </TabsTrigger>
