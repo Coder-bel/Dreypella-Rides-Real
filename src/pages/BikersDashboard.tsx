@@ -1,6 +1,7 @@
 /**
  * Biker auth is separate for MVP. In production use proper role-based auth with Supabase metadata or Edge Functions.
  * Bikers can view pending dispatches and accept/complete deliveries.
+ * WhatsApp number is fetched from the bikers table and assigned to dispatch on acceptance.
  */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -8,17 +9,22 @@ import { Bike, LogOut, CheckCircle, Package, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-/** Hardcoded biker phone mapping for MVP. In production, store in DB. */
-const BIKER_PHONES: Record<string, string> = {
-  "okikibeloved@gmail.com": "+2349039029914",
-};
-
 const BikersDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [dispatches, setDispatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bikerWhatsapp, setBikerWhatsapp] = useState("");
   const bikerEmail = localStorage.getItem("bikerEmail") || "";
+
+  const fetchBikerWhatsapp = async () => {
+    const { data } = await supabase
+      .from("bikers")
+      .select("whatsapp_number")
+      .eq("email", bikerEmail)
+      .maybeSingle();
+    if (data) setBikerWhatsapp(data.whatsapp_number);
+  };
 
   const fetchDispatches = async () => {
     const { data } = await supabase
@@ -31,6 +37,7 @@ const BikersDashboard = () => {
   };
 
   useEffect(() => {
+    fetchBikerWhatsapp();
     fetchDispatches();
     const channel = supabase
       .channel("biker-dispatches")
@@ -40,15 +47,18 @@ const BikersDashboard = () => {
   }, []);
 
   const handleAccept = async (dispatch: any) => {
-    const phone = BIKER_PHONES[bikerEmail] || "";
+    if (!bikerWhatsapp) {
+      toast({ title: "Error", description: "WhatsApp number not found. Please re-register.", variant: "destructive" });
+      return;
+    }
     const { error } = await supabase
       .from("dispatches")
-      .update({ status: "assigned", biker_assigned: bikerEmail, biker_phone: phone })
+      .update({ status: "assigned", biker_assigned: bikerEmail, biker_phone: bikerWhatsapp })
       .eq("id", dispatch.id);
     if (error) {
       toast({ title: "Error", description: "Failed to accept delivery", variant: "destructive" });
     } else {
-      toast({ title: "Accepted!", description: `Delivery ${dispatch.tracking_id} assigned to you` });
+      toast({ title: "Accepted!", description: "Your WhatsApp number will be shared with the sender." });
     }
   };
 
