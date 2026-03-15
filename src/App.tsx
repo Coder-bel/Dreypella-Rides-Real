@@ -7,12 +7,15 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+import BikerRoute from "./components/BikerRoute";
 import Index from "./pages/Index";
 import BookRide from "./pages/BookRide";
 import SendPackage from "./pages/SendPackage";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
+import BikersLogin from "./pages/BikersLogin";
+import BikersDashboard from "./pages/BikersDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
