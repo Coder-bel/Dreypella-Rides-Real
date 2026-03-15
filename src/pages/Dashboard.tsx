@@ -3,7 +3,7 @@
  * Friendly status messages update in real-time when admin changes payment status.
  */
 import { useState, useEffect } from "react";
-import { Bus, Package, Clock, LogOut, X } from "lucide-react";
+import { Bus, Package, Clock, LogOut, X, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
