@@ -52,6 +52,8 @@ export type Database = {
       }
       dispatches: {
         Row: {
+          biker_assigned: string | null
+          biker_phone: string | null
           created_at: string
           delivery_type: string
           dropoff: string
@@ -59,13 +61,17 @@ export type Database = {
           package_type: string
           pickup: string
           price: number
+          receiver_name: string | null
           receiver_phone: string
+          sender_name: string | null
           sender_phone: string
           status: string
           tracking_id: string
           user_id: string
         }
         Insert: {
+          biker_assigned?: string | null
+          biker_phone?: string | null
           created_at?: string
           delivery_type?: string
           dropoff: string
@@ -73,13 +79,17 @@ export type Database = {
           package_type: string
           pickup: string
           price: number
+          receiver_name?: string | null
           receiver_phone: string
+          sender_name?: string | null
           sender_phone: string
           status?: string
           tracking_id: string
           user_id: string
         }
         Update: {
+          biker_assigned?: string | null
+          biker_phone?: string | null
           created_at?: string
           delivery_type?: string
           dropoff?: string
@@ -87,7 +97,9 @@ export type Database = {
           package_type?: string
           pickup?: string
           price?: number
+          receiver_name?: string | null
           receiver_phone?: string
+          sender_name?: string | null
           sender_phone?: string
           status?: string
           tracking_id?: string
