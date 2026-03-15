@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      bikers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          whatsapp_number: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          whatsapp_number: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           created_at: string
