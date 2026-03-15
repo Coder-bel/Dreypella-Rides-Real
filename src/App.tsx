@@ -35,6 +35,8 @@ const App = () => (
               <Route path="/send-package" element={<ProtectedRoute><SendPackage /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+              <Route path="/bikers-login" element={<BikersLogin />} />
+              <Route path="/bikers" element={<BikerRoute><BikersDashboard /></BikerRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
