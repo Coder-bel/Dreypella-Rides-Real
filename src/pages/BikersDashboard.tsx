@@ -30,7 +30,7 @@ const BikersDashboard = () => {
     const { data } = await supabase
       .from("dispatches")
       .select("*")
-      .in("status", ["pending_delivery", "assigned"])
+      .in("status", ["pending_delivery", "assigned", "completed"])
       .order("created_at", { ascending: false });
     if (data) setDispatches(data);
     setLoading(false);
