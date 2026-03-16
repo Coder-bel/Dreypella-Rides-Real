@@ -83,6 +83,7 @@ const BikersDashboard = () => {
 
   const pendingDispatches = dispatches.filter((d) => d.status === "pending_delivery");
   const assignedDispatches = dispatches.filter((d) => d.status === "assigned" && d.biker_assigned === bikerEmail);
+  const completedDispatches = dispatches.filter((d) => d.status === "completed" && d.biker_assigned === bikerEmail);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
