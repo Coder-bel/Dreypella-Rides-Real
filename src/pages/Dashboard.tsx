@@ -7,12 +7,20 @@ import { Bus, Package, Clock, LogOut, X, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import SupportWhatsApp from "@/components/SupportWhatsApp";
+import { SUPPORT_WHATSAPP } from "@/lib/constants";
 
 const friendlyStatus: Record<string, { label: string; color: string }> = {
   pending_payment: { label: "Awaiting payment confirmation", color: "bg-yellow-500/10 text-yellow-600" },
   confirmed: { label: "Payment confirmed – ready for your trip", color: "bg-blue-500/10 text-blue-600" },
   completed: { label: "Trip completed – thank you!", color: "bg-green-500/10 text-green-600" },
   cancelled: { label: "Booking cancelled", color: "bg-red-500/10 text-red-500" },
+};
+
+const dispatchStatusLabel: Record<string, { label: string; color: string }> = {
+  pending_delivery: { label: "Pending Delivery & Payment", color: "bg-yellow-500/10 text-yellow-600" },
+  assigned: { label: "Rider assigned – on the way!", color: "bg-blue-500/10 text-blue-600" },
+  completed: { label: "Package delivered successfully – thank you!", color: "bg-green-500/10 text-green-600" },
 };
 
 const Dashboard = () => {
@@ -80,6 +88,11 @@ const Dashboard = () => {
         ))}
       </div>
 
+      {/* Support Contact */}
+      <div className="mb-4 animate-fade-in-up-delay-2">
+        <SupportWhatsApp label="Contact Support" className="w-full justify-center" />
+      </div>
+
       {/* Upcoming Trips */}
       {upcomingBookings.length > 0 && (
         <div className="mb-4">
@@ -131,14 +144,9 @@ const Dashboard = () => {
       {/* Dispatch History */}
       {dispatches.length > 0 && (
         <div className="mb-4">
-          <h3 className="font-display font-semibold text-sm mb-2">Dispatch History</h3>
+          <h3 className="font-display font-semibold text-sm mb-2">My Packages</h3>
           <div className="space-y-2">
             {dispatches.slice(0, 5).map((d) => {
-              const dispatchStatusLabel: Record<string, { label: string; color: string }> = {
-                pending_delivery: { label: "Pending Delivery & Payment", color: "bg-yellow-500/10 text-yellow-600" },
-                assigned: { label: "Rider assigned – on the way!", color: "bg-blue-500/10 text-blue-600" },
-                completed: { label: "Package delivered successfully – thank you!", color: "bg-green-500/10 text-green-600" },
-              };
               const st = dispatchStatusLabel[d.status] || { label: d.status.replace(/_/g, " "), color: "bg-accent/10 text-accent" };
               return (
                 <div key={d.id} className="bg-card rounded-xl p-3 border text-sm">
@@ -147,16 +155,42 @@ const Dashboard = () => {
                     <span className={`text-xs px-2 py-0.5 rounded-full ${st.color}`}>{st.label}</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">{d.pickup} → {d.dropoff}</p>
+
+                  {/* Rider WhatsApp – only shown when status is "assigned" */}
                   {d.status === "assigned" && d.biker_phone && (
-                    <a
-                      href={`https://wa.me/${d.biker_phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I'm tracking package ${d.tracking_id}`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1.5 text-xs bg-[#25D366]/10 text-[#25D366] px-3 py-1.5 rounded-lg font-medium hover:bg-[#25D366]/20 transition-colors"
-                    >
-                      <MessageCircle size={14} fill="#25D366" />
-                      Contact your rider on WhatsApp
-                    </a>
+                    <div className="mt-2 bg-blue-500/5 border border-blue-500/20 rounded-lg p-2.5">
+                      <p className="text-xs font-semibold text-blue-600 mb-1">🏍️ Your Delivery Rider</p>
+                      <p className="text-xs text-muted-foreground mb-1.5">Your package has been assigned to a rider</p>
+                      <a
+                        href={`https://wa.me/${d.biker_phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello, regarding my package ${d.tracking_id}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs bg-[#25D366]/10 text-[#25D366] px-3 py-1.5 rounded-lg font-medium hover:bg-[#25D366]/20 transition-colors"
+                      >
+                        <MessageCircle size={14} fill="#25D366" />
+                        Contact Rider: {d.biker_phone}
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Completed status message */}
+                  {d.status === "completed" && (
+                    <p className="mt-2 text-xs text-green-600 font-medium">✅ Package delivered successfully – thank you!</p>
+                  )}
+
+                  {/* Support contact for pending packages */}
+                  {d.status === "pending_delivery" && (
+                    <div className="mt-2">
+                      <a
+                        href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my package ${d.tracking_id}. I need help.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-[#25D366] transition-colors"
+                      >
+                        <MessageCircle size={12} />
+                        Contact Support about this package
+                      </a>
+                    </div>
                   )}
                 </div>
               );
@@ -181,6 +215,9 @@ const Dashboard = () => {
               <p><span className="text-muted-foreground">Pickup:</span> <span className="font-semibold">{selectedBooking.pickup}</span></p>
               <p><span className="text-muted-foreground">Passengers:</span> <span className="font-semibold">{selectedBooking.passengers}</span></p>
               <p><span className="text-muted-foreground">Status:</span> <span className={`font-semibold ${friendlyStatus[selectedBooking.status]?.color?.split(" ")[1] || ""}`}>{friendlyStatus[selectedBooking.status]?.label || selectedBooking.status.replace(/_/g, " ")}</span></p>
+            </div>
+            <div className="mt-4 pt-3 border-t">
+              <SupportWhatsApp context={`booking ${selectedBooking.route} on ${selectedBooking.travel_date}`} label="Contact Support" className="w-full justify-center text-xs" />
             </div>
           </div>
         </div>

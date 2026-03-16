@@ -251,7 +251,7 @@ const SendPackage = () => {
           <div className="bg-secondary rounded-xl p-4 text-center text-sm animate-fade-in-up">
             <p className="font-medium mb-1">Unable to estimate price automatically</p>
             <p className="text-muted-foreground text-xs">
-              Please <a href="https://wa.me/2349039029914?text=Hi%2C%20I%20need%20a%20price%20quote%20for%20package%20delivery" target="_blank" rel="noopener noreferrer" className="text-accent underline">contact us on WhatsApp</a> for an exact quote. You can still submit your dispatch below.
+              Please <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Hello DREYPELLA support, I need a price quote for package delivery")}`} target="_blank" rel="noopener noreferrer" className="text-accent underline">contact support on WhatsApp</a> for an exact quote. You can still submit your dispatch below.
             </p>
           </div>
         )}

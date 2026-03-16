@@ -9,6 +9,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentModal from "@/components/PaymentModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { SUPPORT_WHATSAPP } from "@/lib/constants";
 
 type Trip = {
   id: string;
