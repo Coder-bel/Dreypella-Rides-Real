@@ -153,14 +153,15 @@ const SendPackage = () => {
             <p className="text-center text-muted-foreground">Show this invoice when dropping off the package.</p>
           </div>
           <a
-            href={`https://wa.me/2349039029914?text=${encodeURIComponent(`Hi, I booked a package dispatch ${trackingId}. Sender: ${form.senderName}. Please confirm pickup.`)}`}
+            href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my package ${trackingId}. Sender: ${form.senderName}. Please confirm pickup.`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
           >
             <MessageCircle size={18} fill="white" />
-            Contact Us on WhatsApp
+            Contact Support on WhatsApp
           </a>
+          <p className="text-xs text-muted-foreground mt-2 text-center">For delivery questions or issues, contact support above</p>
         </div>
       </div>
     );
