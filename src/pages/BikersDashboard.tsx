@@ -30,7 +30,7 @@ const BikersDashboard = () => {
     const { data } = await supabase
       .from("dispatches")
       .select("*")
-      .in("status", ["pending_delivery", "assigned"])
+      .in("status", ["pending_delivery", "assigned", "completed"])
       .order("created_at", { ascending: false });
     if (data) setDispatches(data);
     setLoading(false);
@@ -83,6 +83,7 @@ const BikersDashboard = () => {
 
   const pendingDispatches = dispatches.filter((d) => d.status === "pending_delivery");
   const assignedDispatches = dispatches.filter((d) => d.status === "assigned" && d.biker_assigned === bikerEmail);
+  const completedDispatches = dispatches.filter((d) => d.status === "completed" && d.biker_assigned === bikerEmail);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -177,6 +178,31 @@ const BikersDashboard = () => {
             </div>
           )}
         </div>
+
+        {/* Completed Deliveries History */}
+        {completedDispatches.length > 0 && (
+          <div className="mt-8 animate-fade-in-up">
+            <h2 className="font-display font-semibold text-sm mb-3 flex items-center gap-2">
+              <CheckCircle size={16} className="text-green-500" /> Past Deliveries
+            </h2>
+            <div className="space-y-3">
+              {completedDispatches.map((d) => (
+                <div key={d.id} className="bg-card rounded-xl border p-4 opacity-80">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="font-mono text-accent text-xs font-bold">{d.tracking_id}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-600">Completed</span>
+                  </div>
+                  <div className="text-sm space-y-1">
+                    <p><span className="text-muted-foreground">Pickup:</span> {d.pickup}</p>
+                    <p><span className="text-muted-foreground">Delivery:</span> {d.dropoff}</p>
+                    <p><span className="text-muted-foreground">Package:</span> {d.package_type}</p>
+                    <p><span className="text-muted-foreground">Price:</span> ₦{Number(d.price).toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

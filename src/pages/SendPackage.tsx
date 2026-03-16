@@ -3,7 +3,7 @@
  * Real distance API (Google Maps or similar) can be added later via admin or backend.
  */
 import { useState } from "react";
-import { Package, CheckCircle, MessageCircle, Calculator } from "lucide-react";
+import { Package, CheckCircle, MessageCircle, Calculator, Clock } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -152,16 +152,11 @@ const SendPackage = () => {
             </p>
             <p className="text-center text-muted-foreground">Show this invoice when dropping off the package.</p>
           </div>
-          <a
-            href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my package ${trackingId}. Sender: ${form.senderName}. Please confirm pickup.`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
-          >
-            <MessageCircle size={18} fill="white" />
-            Contact Support on WhatsApp
-          </a>
-          <p className="text-xs text-muted-foreground mt-2 text-center">For delivery questions or issues, contact support above</p>
+          <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 text-center">
+            <Clock size={24} className="mx-auto text-blue-500 mb-2" />
+            <p className="text-sm font-semibold text-blue-600">Waiting for a rider to accept your order</p>
+            <p className="text-xs text-muted-foreground mt-1">Once a rider accepts, their WhatsApp number will appear on your dashboard so you can coordinate the pickup.</p>
+          </div>
         </div>
       </div>
     );
