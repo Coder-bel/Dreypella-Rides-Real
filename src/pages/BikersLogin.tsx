@@ -8,9 +8,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bike, AlertCircle, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-
-const ALLOWED_BIKERS = ["okikibeloved@gmail.com"];
-const BIKER_PASSWORD = "12345678";
+import { ALLOWED_BIKER_EMAILS, BIKER_PASSWORD } from "@/lib/constants";
 
 type Step = "email" | "signup" | "login";
 
