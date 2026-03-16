@@ -7,6 +7,7 @@ import { Package, CheckCircle, MessageCircle, Calculator } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { SUPPORT_WHATSAPP } from "@/lib/constants";
 
 const packageTypes = ["Small Envelope", "Medium Box", "Large Box", "Electronics", "Documents", "Other"];
 
