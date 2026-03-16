@@ -7,6 +7,7 @@ import { Package, CheckCircle, MessageCircle, Calculator } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { SUPPORT_WHATSAPP } from "@/lib/constants";
 
 const packageTypes = ["Small Envelope", "Medium Box", "Large Box", "Electronics", "Documents", "Other"];
 
@@ -152,14 +153,15 @@ const SendPackage = () => {
             <p className="text-center text-muted-foreground">Show this invoice when dropping off the package.</p>
           </div>
           <a
-            href={`https://wa.me/2349039029914?text=${encodeURIComponent(`Hi, I booked a package dispatch ${trackingId}. Sender: ${form.senderName}. Please confirm pickup.`)}`}
+            href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my package ${trackingId}. Sender: ${form.senderName}. Please confirm pickup.`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
           >
             <MessageCircle size={18} fill="white" />
-            Contact Us on WhatsApp
+            Contact Support on WhatsApp
           </a>
+          <p className="text-xs text-muted-foreground mt-2 text-center">For delivery questions or issues, contact support above</p>
         </div>
       </div>
     );
@@ -249,7 +251,7 @@ const SendPackage = () => {
           <div className="bg-secondary rounded-xl p-4 text-center text-sm animate-fade-in-up">
             <p className="font-medium mb-1">Unable to estimate price automatically</p>
             <p className="text-muted-foreground text-xs">
-              Please <a href="https://wa.me/2349039029914?text=Hi%2C%20I%20need%20a%20price%20quote%20for%20package%20delivery" target="_blank" rel="noopener noreferrer" className="text-accent underline">contact us on WhatsApp</a> for an exact quote. You can still submit your dispatch below.
+              Please <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Hello DREYPELLA support, I need a price quote for package delivery")}`} target="_blank" rel="noopener noreferrer" className="text-accent underline">contact support on WhatsApp</a> for an exact quote. You can still submit your dispatch below.
             </p>
           </div>
         )}

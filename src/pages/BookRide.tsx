@@ -9,6 +9,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentModal from "@/components/PaymentModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { SUPPORT_WHATSAPP } from "@/lib/constants";
 
 type Trip = {
   id: string;
@@ -156,14 +157,15 @@ const BookRide = () => {
           </div>
           <p className="text-xs text-muted-foreground mb-4">🎟️ Show this at the bus for boarding. Payment verification may take up to 1 hour.</p>
           <a
-            href={`https://wa.me/2349039029914?text=${encodeURIComponent(`Hi, I just made payment for booking ${bookingRef}. Name: ${fullName}. Please confirm.`)}`}
+            href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my booking ${bookingRef}. Name: ${fullName}. I just made payment, please confirm.`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
           >
             <MessageCircle size={18} fill="white" />
-            Send Payment Proof → WhatsApp
+            Send Payment Proof to Support
           </a>
+          <p className="text-xs text-muted-foreground mt-2 text-center">For payment issues or questions, contact support above</p>
         </div>
       </div>
     );

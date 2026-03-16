@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bus, Package, Home, User, Menu, X, Moon, Sun, LogIn } from "lucide-react";
+import { Bus, Package, Home, User, Menu, X, Moon, Sun, LogIn, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { SUPPORT_WHATSAPP } from "@/lib/constants";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -84,6 +85,24 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       </header>
 
       <main className="flex-1">{children}</main>
+
+      {/* Footer with Support Contact */}
+      <footer className="hidden md:block border-t bg-card py-6">
+        <div className="container px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} DREYPELLA RIDE. All rights reserved.
+          </p>
+          <a
+            href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Hello DREYPELLA support, I need help.")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#25D366] hover:underline"
+          >
+            <MessageCircle size={14} fill="#25D366" />
+            Support / Admin Contact
+          </a>
+        </div>
+      </footer>
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50">
