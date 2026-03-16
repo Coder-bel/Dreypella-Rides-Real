@@ -45,7 +45,7 @@ const BikersLogin = () => {
     setError("");
     const normalizedEmail = email.trim().toLowerCase();
 
-    if (!ALLOWED_BIKERS.includes(normalizedEmail)) {
+    if (!ALLOWED_BIKER_EMAILS.includes(normalizedEmail)) {
       setError("This email is not authorized as a biker");
       return;
     }
