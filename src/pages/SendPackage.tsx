@@ -3,7 +3,7 @@
  * Real distance API (Google Maps or similar) can be added later via admin or backend.
  */
 import { useState } from "react";
-import { Package, CheckCircle, MessageCircle, Calculator } from "lucide-react";
+import { Package, CheckCircle, MessageCircle, Calculator, Clock } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
