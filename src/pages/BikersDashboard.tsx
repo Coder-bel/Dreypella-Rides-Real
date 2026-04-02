@@ -5,7 +5,7 @@
  */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bike, LogOut, CheckCircle, Package, Truck, MapPin } from "lucide-react";
+import { Bike, LogOut, CheckCircle, Package, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import LeafletMap from "@/components/LeafletMap";
 import { useToast } from "@/hooks/use-toast";
