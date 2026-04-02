@@ -28,7 +28,7 @@ declare global {
   }
 }
 
-const LeafletMap = ({ pickup, dropoff }: LeafletMapProps) => {
+const LeafletMap = ({ pickup, dropoff, height = 192 }: LeafletMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
 
