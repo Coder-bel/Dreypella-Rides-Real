@@ -19,6 +19,7 @@ const matchCity = (text: string): string | null => {
 interface LeafletMapProps {
   pickup: string;
   dropoff: string;
+  height?: number;
 }
 
 declare global {
