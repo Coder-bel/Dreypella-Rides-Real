@@ -102,8 +102,8 @@ const LeafletMap = ({ pickup, dropoff, height = 192 }: LeafletMapProps) => {
   return (
     <div
       ref={mapRef}
-      className="w-full h-48 rounded-xl overflow-hidden border z-0"
-      style={{ minHeight: 192 }}
+      className="w-full rounded-xl overflow-hidden border z-0"
+      style={{ minHeight: height, height }}
     />
   );
 };
