@@ -3,9 +3,9 @@
  * Bikers can view pending dispatches and accept/complete deliveries.
  * WhatsApp number is fetched from the bikers table and assigned to dispatch on acceptance.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bike, LogOut, CheckCircle, Package, Truck } from "lucide-react";
+import { Bike, LogOut, CheckCircle, Package, Truck, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import LeafletMap from "@/components/LeafletMap";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,8 @@ const BikersDashboard = () => {
   const [dispatches, setDispatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [bikerWhatsapp, setBikerWhatsapp] = useState("");
+  const [activeMapId, setActiveMapId] = useState<string | null>(null);
+  const activeCardRef = useRef<HTMLDivElement>(null);
   const bikerEmail = localStorage.getItem("bikerEmail") || "";
 
   const fetchBikerWhatsapp = async () => {
@@ -47,6 +49,15 @@ const BikersDashboard = () => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  // Auto-scroll to active map card
+  useEffect(() => {
+    if (activeMapId && activeCardRef.current) {
+      setTimeout(() => {
+        activeCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    }
+  }, [activeMapId]);
+
   const handleAccept = async (dispatch: any) => {
     if (!bikerWhatsapp) {
       toast({ title: "Error", description: "WhatsApp number not found. Please re-register.", variant: "destructive" });
@@ -59,7 +70,8 @@ const BikersDashboard = () => {
     if (error) {
       toast({ title: "Error", description: "Failed to accept delivery", variant: "destructive" });
     } else {
-      toast({ title: "Accepted!", description: "Your WhatsApp number will be shared with the sender." });
+      toast({ title: "✅ Delivery Accepted!", description: "Map is now showing pickup & delivery points." });
+      setActiveMapId(dispatch.id);
     }
   };
 
@@ -72,6 +84,7 @@ const BikersDashboard = () => {
       toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
     } else {
       toast({ title: "Delivered!", description: `Package ${dispatch.tracking_id} marked as completed` });
+      if (activeMapId === dispatch.id) setActiveMapId(null);
     }
   };
 
@@ -110,33 +123,57 @@ const BikersDashboard = () => {
             <h2 className="font-display font-semibold text-sm mb-3 flex items-center gap-2">
               <Truck size={16} className="text-accent" /> My Assigned Deliveries
             </h2>
-            <div className="space-y-3">
-              {assignedDispatches.map((d) => (
-                <div key={d.id} className="bg-card rounded-xl border p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="font-mono text-accent text-xs font-bold">{d.tracking_id}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600">Assigned</span>
-                  </div>
-                  <div className="text-sm space-y-1 mb-3">
-                    <p><span className="text-muted-foreground">Pickup:</span> {d.pickup}</p>
-                    <p><span className="text-muted-foreground">Delivery:</span> {d.dropoff}</p>
-                    <p><span className="text-muted-foreground">Sender:</span> {d.sender_name || "N/A"} ({d.sender_phone})</p>
-                    <p><span className="text-muted-foreground">Receiver:</span> {d.receiver_name || "N/A"} ({d.receiver_phone})</p>
-                    <p><span className="text-muted-foreground">Package:</span> {d.package_type} • {d.delivery_type === "same-day" ? "Same Day" : "Next Day"}</p>
-                    <p><span className="text-muted-foreground">Price:</span> ₦{Number(d.price).toLocaleString()}</p>
-                  </div>
-                  {/* Map for assigned delivery */}
-                  <div className="mb-3">
-                    <LeafletMap pickup={d.pickup} dropoff={d.dropoff} />
-                  </div>
-                  <button
-                    onClick={() => handleMarkDelivered(d)}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition-all hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
+            <div className="space-y-4">
+              {assignedDispatches.map((d) => {
+                const isActive = activeMapId === d.id;
+                return (
+                  <div
+                    key={d.id}
+                    ref={isActive ? activeCardRef : undefined}
+                    className={`bg-card rounded-xl border p-4 transition-all ${isActive ? "ring-2 ring-accent shadow-lg" : ""}`}
                   >
-                    <CheckCircle size={16} /> Mark as Delivered
-                  </button>
-                </div>
-              ))}
+                    {/* Success banner for freshly accepted */}
+                    {isActive && (
+                      <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 mb-3 flex items-center gap-2 animate-fade-in-up">
+                        <CheckCircle size={18} className="text-green-600 shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold text-green-700">You have accepted this delivery</p>
+                          <p className="text-xs text-green-600/80">Use the map below to navigate to pickup and delivery points</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-mono text-accent text-xs font-bold">{d.tracking_id}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600">Assigned</span>
+                    </div>
+                    <div className="text-sm space-y-1 mb-3">
+                      <p><span className="text-muted-foreground">Pickup:</span> {d.pickup}</p>
+                      <p><span className="text-muted-foreground">Delivery:</span> {d.dropoff}</p>
+                      <p><span className="text-muted-foreground">Sender:</span> {d.sender_name || "N/A"} ({d.sender_phone})</p>
+                      <p><span className="text-muted-foreground">Receiver:</span> {d.receiver_name || "N/A"} ({d.receiver_phone})</p>
+                      <p><span className="text-muted-foreground">Package:</span> {d.package_type} • {d.delivery_type === "same-day" ? "Same Day" : "Next Day"}</p>
+                      <p><span className="text-muted-foreground">Price:</span> ₦{Number(d.price).toLocaleString()}</p>
+                    </div>
+
+                    {/* Map – prominent display */}
+                    <div className="mb-3">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <MapPin size={14} className="text-accent" />
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Route Map</span>
+                      </div>
+                      <LeafletMap pickup={d.pickup} dropoff={d.dropoff} height={280} />
+                    </div>
+
+                    <button
+                      onClick={() => handleMarkDelivered(d)}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition-all hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
+                    >
+                      <CheckCircle size={16} /> Mark as Delivered
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
