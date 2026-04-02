@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bike, LogOut, CheckCircle, Package, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import LeafletMap from "@/components/LeafletMap";
 import { useToast } from "@/hooks/use-toast";
 
 const BikersDashboard = () => {
@@ -123,6 +124,10 @@ const BikersDashboard = () => {
                     <p><span className="text-muted-foreground">Receiver:</span> {d.receiver_name || "N/A"} ({d.receiver_phone})</p>
                     <p><span className="text-muted-foreground">Package:</span> {d.package_type} • {d.delivery_type === "same-day" ? "Same Day" : "Next Day"}</p>
                     <p><span className="text-muted-foreground">Price:</span> ₦{Number(d.price).toLocaleString()}</p>
+                  </div>
+                  {/* Map for assigned delivery */}
+                  <div className="mb-3">
+                    <LeafletMap pickup={d.pickup} dropoff={d.dropoff} />
                   </div>
                   <button
                     onClick={() => handleMarkDelivered(d)}

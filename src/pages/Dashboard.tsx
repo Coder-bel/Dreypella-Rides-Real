@@ -127,14 +127,27 @@ const Dashboard = () => {
           <h3 className="font-display font-semibold text-sm mb-2">Ride History</h3>
           <div className="space-y-2">
             {bookings.slice(0, 5).map((b) => (
-              <div key={b.id} className="bg-card rounded-xl p-3 border text-sm flex justify-between items-center">
-                <div>
-                  <p className="font-medium">{b.route}</p>
-                  <p className="text-xs text-muted-foreground">{b.travel_date} • {b.pickup}</p>
+              <div key={b.id} onClick={() => setSelectedBooking(b)} className="bg-card rounded-xl p-3 border text-sm cursor-pointer hover-lift">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-medium">{b.route}</p>
+                    <p className="text-xs text-muted-foreground">{b.travel_date} • {b.pickup}</p>
+                  </div>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${friendlyStatus[b.status]?.color || "bg-accent/10 text-accent"}`}>
+                    {friendlyStatus[b.status]?.label || b.status.replace(/_/g, " ")}
+                  </span>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${friendlyStatus[b.status]?.color || "bg-accent/10 text-accent"}`}>
-                  {friendlyStatus[b.status]?.label || b.status.replace(/_/g, " ")}
-                </span>
+                <div className="mt-2">
+                  <a
+                    href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my ride booking ${b.route} on ${b.travel_date}. I need help.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-[#25D366] transition-colors"
+                  >
+                    <MessageCircle size={12} />
+                    Contact Support
+                  </a>
+                </div>
               </div>
             ))}
           </div>
