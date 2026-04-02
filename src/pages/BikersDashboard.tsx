@@ -125,6 +125,10 @@ const BikersDashboard = () => {
                     <p><span className="text-muted-foreground">Package:</span> {d.package_type} • {d.delivery_type === "same-day" ? "Same Day" : "Next Day"}</p>
                     <p><span className="text-muted-foreground">Price:</span> ₦{Number(d.price).toLocaleString()}</p>
                   </div>
+                  {/* Map for assigned delivery */}
+                  <div className="mb-3">
+                    <LeafletMap pickup={d.pickup} dropoff={d.dropoff} />
+                  </div>
                   <button
                     onClick={() => handleMarkDelivered(d)}
                     className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition-all hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
