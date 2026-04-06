@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Bus, Package, ArrowRight, MapPin, LogIn, Truck, Shield } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAuth } from "@/hooks/useAuth";
+import heroBg from "@/assets/hero-bg.jpg";
 
 const cities = ["Lagos", "Ibadan", "Ogbomoso", "Iseyin", "Oyo"];
 
@@ -13,19 +14,17 @@ const Index = () => {
 
   return (
     <div className="pb-6">
-      {/* Animated Hero Background */}
+      {/* Hero with Background Image */}
       <section className="relative w-full overflow-hidden">
-        <div className="hero-animated-bg w-full h-48 sm:h-64 lg:h-80">
-          <div className="hero-shape hero-shape-1" />
-          <div className="hero-shape hero-shape-2" />
-          <div className="hero-shape hero-shape-3" />
-          <div className="hero-shape hero-shape-4" />
-          <div className="hero-grid" />
-        </div>
-      </section>
+        <div
+          className="relative w-full min-h-[320px] sm:min-h-[420px] lg:min-h-[500px] bg-cover bg-center flex items-center justify-center"
+          style={{ backgroundImage: `url(${heroBg})` }}
+        >
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-[hsl(210,100%,12%)]/75 dark:bg-[hsl(210,60%,6%)]/85" />
 
-      {/* Hero Text */}
-      <section className="container px-4 py-8 text-center">
+          {/* Hero content */}
+          <div className="relative z-10 container px-4 py-12 sm:py-16 text-center">
         <h1 className="font-display font-bold text-2xl sm:text-4xl lg:text-5xl leading-tight animate-fade-in-up">
           DREYPELLA <span className="text-accent">RIDE</span>
         </h1>
@@ -66,6 +65,7 @@ const Index = () => {
               <ArrowRight size={16} />
             </Link>
           )}
+          </div>
         </div>
       </section>
 
