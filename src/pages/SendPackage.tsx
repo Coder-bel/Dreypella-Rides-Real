@@ -1,9 +1,10 @@
 /**
- * Package delivery uses pay-on-delivery model. Distance-based pricing is approximate/hardcoded for MVP.
- * Real distance API (Google Maps or similar) can be added later via admin or backend.
+ * Package delivery uses pay-on-delivery model.
+ * Within Ogbomoso: base ₦500 + ₦100/km estimate.
+ * Outside Ogbomoso: contact support for pricing.
  */
 import { useState } from "react";
-import { Package, CheckCircle, MessageCircle, Calculator, Clock } from "lucide-react";
+import { Package, CheckCircle, MessageCircle, Clock } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,43 +12,10 @@ import { SUPPORT_WHATSAPP } from "@/lib/constants";
 
 const packageTypes = ["Small Envelope", "Medium Box", "Large Box", "Electronics", "Documents", "Other"];
 
-/** Hardcoded approximate distances (km) between cities for MVP */
-const CITY_DISTANCES: Record<string, Record<string, number>> = {
-  ogbomoso: { ibadan: 55, lagos: 140, iseyin: 45, oyo: 35 },
-  ibadan: { ogbomoso: 55, lagos: 120, iseyin: 70, oyo: 60 },
-  lagos: { ogbomoso: 140, ibadan: 120, iseyin: 180, oyo: 170 },
-  iseyin: { ogbomoso: 45, ibadan: 70, lagos: 180, oyo: 80 },
-  oyo: { ogbomoso: 35, ibadan: 60, lagos: 170, iseyin: 80 },
-};
-
-const OYO_STATE_CITIES = ["ogbomoso", "ibadan", "iseyin", "oyo"];
-
-const KNOWN_CITIES = ["ogbomoso", "ibadan", "lagos", "iseyin", "oyo"];
-
-/** Try to match free-text location to a known city */
-const matchCity = (text: string): string | null => {
-  const lower = text.toLowerCase();
-  return KNOWN_CITIES.find((c) => lower.includes(c)) || null;
-};
-
-/** Calculate estimated price. Returns null if cities can't be matched. */
-const calculatePrice = (pickup: string, dropoff: string): { price: number; distance: number; matched: boolean } | null => {
-  const pickupCity = matchCity(pickup);
-  const dropoffCity = matchCity(dropoff);
-  if (!pickupCity || !dropoffCity) return null;
-  if (pickupCity === dropoffCity) {
-    const baseFee = 500;
-    return { price: baseFee, distance: 0, matched: true };
-  }
-  const distance = CITY_DISTANCES[pickupCity]?.[dropoffCity];
-  if (distance == null) return null;
-  const isInterState = !(OYO_STATE_CITIES.includes(pickupCity) && OYO_STATE_CITIES.includes(dropoffCity));
-  const baseFee = isInterState ? 1000 : 500;
-  return { price: baseFee + distance * 100, distance, matched: true };
-};
-
 const generateTrackingId = () =>
   "DRP-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
+
+type DeliveryRegion = "" | "within" | "outside";
 
 const SendPackage = () => {
   const { user } = useAuth();
@@ -61,8 +29,7 @@ const SendPackage = () => {
     receiverPhone: "",
     delivery: "next-day",
   });
-  const [priceInfo, setPriceInfo] = useState<{ price: number; distance: number } | null>(null);
-  const [priceUnknown, setPriceUnknown] = useState(false);
+  const [deliveryRegion, setDeliveryRegion] = useState<DeliveryRegion>("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [trackingId, setTrackingId] = useState("");
@@ -72,25 +39,15 @@ const SendPackage = () => {
     setForm((f) => ({ ...f, [field]: value }));
   };
 
-  const handleCalculatePrice = () => {
-    if (!form.pickup.trim() || !form.dropoff.trim()) return;
-    const result = calculatePrice(form.pickup, form.dropoff);
-    if (result) {
-      setPriceInfo(result);
-      setPriceUnknown(false);
-    } else {
-      setPriceInfo(null);
-      setPriceUnknown(true);
-    }
-  };
+  /** Simple within-Ogbomoso price: ₦500 base + ₦100 × estimated km (fixed 5km for MVP) */
+  const estimatedPrice = deliveryRegion === "within" ? 500 + 5 * 100 : 0;
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!priceInfo && !priceUnknown) {
-      handleCalculatePrice();
-      return;
-    }
+    if (!deliveryRegion) return;
+    if (deliveryRegion === "outside") return;
+
     setLoading(true);
     setError("");
 
@@ -107,7 +64,7 @@ const SendPackage = () => {
       receiver_name: form.receiverName,
       receiver_phone: form.receiverPhone,
       delivery_type: form.delivery,
-      price: priceInfo?.price ?? 0,
+      price: estimatedPrice,
       status: "pending_delivery",
     });
 
@@ -140,17 +97,14 @@ const SendPackage = () => {
             <p><span className="font-medium">Sender:</span> {form.senderName} ({form.senderPhone})</p>
             <p><span className="font-medium">Receiver:</span> {form.receiverName} ({form.receiverPhone})</p>
             <p><span className="font-medium">Delivery:</span> {form.delivery === "same-day" ? "Same Day" : "Next Day"}</p>
-            {priceInfo && (
-              <p className="font-semibold text-accent">Estimated Price: ₦{priceInfo.price.toLocaleString()}</p>
-            )}
+            <p className="font-semibold text-accent">Estimated Price: ₦{estimatedPrice.toLocaleString()}</p>
             <p className="font-semibold text-accent">Status: Pending Delivery & Payment</p>
           </div>
           <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-xs text-left mb-4 space-y-1">
             <p className="font-bold text-sm text-center">💰 Pay on Delivery</p>
             <p className="text-center text-muted-foreground">
-              The receiver will pay the total amount{priceInfo ? ` (estimated ₦${priceInfo.price.toLocaleString()})` : ""} upon delivery.
+              The receiver will pay ₦{estimatedPrice.toLocaleString()} upon delivery.
             </p>
-            <p className="text-center text-muted-foreground">Show this invoice when dropping off the package.</p>
           </div>
           <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 text-center">
             <Clock size={24} className="mx-auto text-blue-500 mb-2" />
@@ -189,93 +143,121 @@ const SendPackage = () => {
 
         <div>
           <label className="block text-sm font-medium mb-1.5">Delivery Location</label>
-          <input type="text" value={form.dropoff} onChange={(e) => handleChange("dropoff", e.target.value)} required placeholder="e.g. Iwo Road, Ibadan" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+          <input type="text" value={form.dropoff} onChange={(e) => handleChange("dropoff", e.target.value)} required placeholder="e.g. Arada, Ogbomoso" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Sender Name</label>
-            <input type="text" value={form.senderName} onChange={(e) => handleChange("senderName", e.target.value)} required placeholder="Full name" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Sender Phone</label>
-            <input type="tel" value={form.senderPhone} onChange={(e) => handleChange("senderPhone", e.target.value)} required placeholder="080..." className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Receiver Name</label>
-            <input type="text" value={form.receiverName} onChange={(e) => handleChange("receiverName", e.target.value)} required placeholder="Full name" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Receiver Phone</label>
-            <input type="tel" value={form.receiverPhone} onChange={(e) => handleChange("receiverPhone", e.target.value)} required placeholder="080..." className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Delivery Speed</label>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { value: "next-day", label: "Next Day" },
-              { value: "same-day", label: "Same Day" },
-            ].map((opt) => (
+        {/* Delivery region question */}
+        {form.pickup.trim() && form.dropoff.trim() && (
+          <div className="animate-fade-in-up">
+            <label className="block text-sm font-medium mb-2">Is the delivery within Ogbomoso or outside the region?</label>
+            <div className="grid grid-cols-2 gap-3">
               <label
-                key={opt.value}
                 className={`flex flex-col items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                  form.delivery === opt.value ? "border-accent bg-accent/5" : "border-border hover:border-accent/30"
+                  deliveryRegion === "within" ? "border-accent bg-accent/5" : "border-border hover:border-accent/30"
                 }`}
               >
-                <input type="radio" name="delivery" value={opt.value} checked={form.delivery === opt.value} onChange={(e) => handleChange("delivery", e.target.value)} className="sr-only" />
-                <span className="text-sm font-semibold">{opt.label}</span>
+                <input type="radio" name="deliveryRegion" value="within" checked={deliveryRegion === "within"} onChange={() => setDeliveryRegion("within")} className="sr-only" />
+                <span className="text-sm font-semibold">Within Ogbomoso</span>
               </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Price calculation result */}
-        {priceInfo && (
-          <div className="bg-accent/10 rounded-xl p-4 text-center animate-fade-in-up">
-            <p className="text-xs text-muted-foreground mb-1">Estimated Price ({priceInfo.distance} km)</p>
-            <p className="text-2xl font-display font-bold text-accent">₦{priceInfo.price.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground mt-1">Pay on delivery – receiver pays upon receipt</p>
+              <label
+                className={`flex flex-col items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                  deliveryRegion === "outside" ? "border-accent bg-accent/5" : "border-border hover:border-accent/30"
+                }`}
+              >
+                <input type="radio" name="deliveryRegion" value="outside" checked={deliveryRegion === "outside"} onChange={() => setDeliveryRegion("outside")} className="sr-only" />
+                <span className="text-sm font-semibold">Outside Ogbomoso</span>
+              </label>
+            </div>
           </div>
         )}
-        {priceUnknown && (
-          <div className="bg-secondary rounded-xl p-4 text-center text-sm animate-fade-in-up">
-            <p className="font-medium mb-1">Unable to estimate price automatically</p>
-            <p className="text-muted-foreground text-xs">
-              Please <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Hello DREYPELLA support, I need a price quote for package delivery")}`} target="_blank" rel="noopener noreferrer" className="text-accent underline">contact support on WhatsApp</a> for an exact quote. You can still submit your dispatch below.
+
+        {/* Outside Ogbomoso → contact support */}
+        {deliveryRegion === "outside" && (
+          <div className="bg-secondary rounded-xl p-5 text-center animate-fade-in-up">
+            <p className="font-semibold text-sm mb-2">Deliveries outside Ogbomoso</p>
+            <p className="text-xs text-muted-foreground mb-4">
+              For deliveries outside Ogbomoso, please contact support for pricing and details.
             </p>
+            <a
+              href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Hello DREYPELLA support, I want to send a package outside Ogbomoso")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-xl bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors"
+            >
+              <MessageCircle size={16} fill="#25D366" />
+              Contact Support on WhatsApp
+            </a>
+            <p className="text-xs text-muted-foreground mt-3">+234 808 214 4372</p>
           </div>
         )}
 
-        {!priceInfo && !priceUnknown && form.pickup.trim() && form.dropoff.trim() && (
-          <button
-            type="button"
-            onClick={handleCalculatePrice}
-            className="w-full bg-secondary hover:bg-secondary/80 text-foreground font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
-          >
-            <Calculator size={18} />
-            Calculate Price
-          </button>
-        )}
+        {/* Within Ogbomoso → show price & continue */}
+        {deliveryRegion === "within" && (
+          <>
+            <div className="bg-accent/10 rounded-xl p-4 text-center animate-fade-in-up">
+              <p className="text-xs text-muted-foreground mb-1">Estimated Price</p>
+              <p className="text-2xl font-display font-bold text-accent">₦{estimatedPrice.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground mt-1">Pay on delivery – receiver pays upon receipt</p>
+            </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-accent hover:bg-red-brand-light text-accent-foreground font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] disabled:opacity-60 flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <div className="w-5 h-5 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin" />
-          ) : (
-            <>
-              <Package size={18} />
-              {priceInfo || priceUnknown ? "Submit Dispatch (Pay on Delivery)" : "Proceed"}
-            </>
-          )}
-        </button>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Sender Name</label>
+                <input type="text" value={form.senderName} onChange={(e) => handleChange("senderName", e.target.value)} required placeholder="Full name" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Sender Phone</label>
+                <input type="tel" value={form.senderPhone} onChange={(e) => handleChange("senderPhone", e.target.value)} required placeholder="080..." className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Receiver Name</label>
+                <input type="text" value={form.receiverName} onChange={(e) => handleChange("receiverName", e.target.value)} required placeholder="Full name" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Receiver Phone</label>
+                <input type="tel" value={form.receiverPhone} onChange={(e) => handleChange("receiverPhone", e.target.value)} required placeholder="080..." className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Delivery Speed</label>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { value: "next-day", label: "Next Day" },
+                  { value: "same-day", label: "Same Day" },
+                ].map((opt) => (
+                  <label
+                    key={opt.value}
+                    className={`flex flex-col items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      form.delivery === opt.value ? "border-accent bg-accent/5" : "border-border hover:border-accent/30"
+                    }`}
+                  >
+                    <input type="radio" name="delivery" value={opt.value} checked={form.delivery === opt.value} onChange={(e) => handleChange("delivery", e.target.value)} className="sr-only" />
+                    <span className="text-sm font-semibold">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-accent hover:bg-red-brand-light text-accent-foreground font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Package size={18} />
+                  Submit Dispatch (Pay on Delivery)
+                </>
+              )}
+            </button>
+          </>
+        )}
       </form>
 
       <WhatsAppButton />
