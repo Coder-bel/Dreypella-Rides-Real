@@ -37,8 +37,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Role suffix for navbar title
-  const roleSuffix = isAdmin ? " – Admin" : isBiker ? " – Bikers" : "";
+  // Clean navbar title — no role suffix
+  const roleSuffix = "";
 
   // For bikers and admins: only show profile + logout (no navigation links)
   const showNavLinks = !isBiker && !isAdmin;
