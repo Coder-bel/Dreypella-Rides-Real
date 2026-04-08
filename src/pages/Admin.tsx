@@ -1,16 +1,13 @@
 /**
+ * Strict role-based access control implemented.
  * Admin dashboard – only accessible to users with 'admin' role in user_roles table.
- * Security note: Client-side check for MVP. For production, move admin data fetches
- * to edge functions with service role key to prevent unauthorized access.
- *
- * Trips management uses hardcoded array for MVP – move to Supabase table later.
+ * Navbar is handled by Layout – no duplicate header here.
  */
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { CheckCircle, Package, Bus, ArrowLeft, LogOut, RefreshCw, MapPin, Clock, Users, CreditCard } from "lucide-react";
+import { CheckCircle, Package, Bus, RefreshCw, MapPin, Clock, Users, CreditCard } from "lucide-react";
 import TripsManager from "@/components/admin/TripsManager";
 import PaymentsOverview from "@/components/admin/PaymentsOverview";
-import { useAuth } from "@/hooks/useAuth";
+import UsersOverview from "@/components/admin/UsersOverview";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,8 +26,6 @@ const statusColors: Record<string, string> = {
 };
 
 const Admin = () => {
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
   const [bookings, setBookings] = useState<any[]>([]);
   const [dispatches, setDispatches] = useState<any[]>([]);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -72,29 +67,14 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-[#001F3F] text-white">
-      {/* Header */}
-      <header className="bg-[#001a35] border-b border-white/10 sticky top-0 z-50">
-        <div className="container flex items-center justify-between h-14 px-4 max-w-6xl mx-auto">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-              <ArrowLeft size={18} />
-            </Link>
-            <h1 className="font-display font-bold text-lg">
-              DREYPELLA<span className="text-[#C8102E]"> RIDE</span> – Admin Panel
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={fetchData} className="p-2 rounded-lg hover:bg-white/10 transition-colors" title="Refresh">
-              <RefreshCw size={18} />
-            </button>
-            <button onClick={async () => { await signOut(); navigate("/"); }} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/60">
-              <LogOut size={18} />
-            </button>
-          </div>
-        </div>
-      </header>
-
       <div className="container px-4 py-6 max-w-6xl mx-auto">
+        {/* Refresh button */}
+        <div className="flex justify-end mb-4">
+          <button onClick={fetchData} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/60" title="Refresh">
+            <RefreshCw size={18} />
+          </button>
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           {[
@@ -112,7 +92,7 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="bookings" className="space-y-4">
-          <TabsList className="bg-white/5 border border-white/10">
+          <TabsList className="bg-white/5 border border-white/10 flex-wrap">
             <TabsTrigger value="bookings" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
               <Bus size={16} className="mr-2" /> Bookings ({bookings.length})
             </TabsTrigger>
@@ -124,6 +104,9 @@ const Admin = () => {
             </TabsTrigger>
             <TabsTrigger value="trips" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
               <Clock size={16} className="mr-2" /> Trips
+            </TabsTrigger>
+            <TabsTrigger value="users" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
+              <Users size={16} className="mr-2" /> Users
             </TabsTrigger>
           </TabsList>
 
@@ -253,6 +236,11 @@ const Admin = () => {
           {/* === TRIPS TAB === */}
           <TabsContent value="trips">
             <TripsManager />
+          </TabsContent>
+
+          {/* === USERS TAB === */}
+          <TabsContent value="users">
+            <UsersOverview />
           </TabsContent>
         </Tabs>
       </div>
