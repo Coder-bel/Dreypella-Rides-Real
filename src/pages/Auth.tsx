@@ -33,7 +33,6 @@ const Auth = () => {
       const { error } = await signUp(email, password, {
         full_name: fullName,
         phone,
-        matric_number: matricNumber,
       });
       if (error) {
         setError(error.message);
