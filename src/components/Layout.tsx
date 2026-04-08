@@ -1,33 +1,63 @@
+/**
+ * Strict role-based access control implemented.
+ * Single unified navbar across all pages. Role-aware title and navigation.
+ */
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Bus, Package, Home, User, Menu, X, Moon, Sun, LogIn, MessageCircle } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Bus, Package, Home, User, Moon, Sun, LogIn, LogOut, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { SUPPORT_WHATSAPP } from "@/lib/constants";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const { user } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const { role } = useUserRole();
   const [dark, setDark] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
 
+  const isBiker = role === "biker";
+  const isAdmin = role === "admin";
+  const bikerEmail = localStorage.getItem("bikerEmail") || "";
+
+  const handleLogout = async () => {
+    if (isBiker) {
+      localStorage.removeItem("isBiker");
+      localStorage.removeItem("bikerExpiry");
+      localStorage.removeItem("bikerEmail");
+      navigate("/bikers-login");
+    } else {
+      await signOut();
+      navigate("/");
+    }
+  };
+
+  // Role suffix for navbar title
+  const roleSuffix = isAdmin ? " – Admin" : isBiker ? " – Bikers" : "";
+
+  // For bikers and admins: only show profile + logout (no navigation links)
+  const showNavLinks = !isBiker && !isAdmin;
+
   const navItems = [
-    { path: "/", label: "Home", icon: Home, requiresAuth: false },
-    { path: "/book-ride", label: "Book Ride", icon: Bus, requiresAuth: true },
-    { path: "/send-package", label: "Send", icon: Package, requiresAuth: true },
-    { path: user ? "/dashboard" : "/auth", label: user ? "Dashboard" : "Login", icon: user ? User : LogIn, requiresAuth: false },
+    { path: "/", label: "Home", icon: Home },
+    { path: "/book-ride", label: "Book Ride", icon: Bus },
+    { path: "/send-package", label: "Send", icon: Package },
+    { path: user ? "/dashboard" : "/auth", label: user ? "Dashboard" : "Login", icon: user ? User : LogIn },
   ];
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top navbar */}
+      {/* Single unified navbar */}
       <header className="bg-navy-gradient sticky top-0 z-50">
         <div className="container flex items-center justify-between h-14 px-4">
-          <Link to="/" className="font-display font-bold text-lg text-primary-foreground tracking-tight">
+          <Link to={isBiker ? "/bikers" : isAdmin ? "/admin" : "/"} className="font-display font-bold text-lg text-primary-foreground tracking-tight">
             DREYPELLA<span className="text-red-brand"> RIDE</span>
+            {roleSuffix && <span className="text-primary-foreground/60 text-sm ml-2">{roleSuffix}</span>}
           </Link>
 
           <div className="flex items-center gap-2">
@@ -38,51 +68,78 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             >
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2 rounded-lg text-primary-foreground/70 hover:text-primary-foreground transition-colors"
-            >
-              {menuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
 
-            <nav className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path + item.label}
-                  to={item.path}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    location.pathname === item.path
-                      ? "bg-primary-foreground/15 text-primary-foreground"
-                      : "text-primary-foreground/60 hover:text-primary-foreground hover:bg-primary-foreground/10"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+            {/* Profile icon for logged-in users, admins, bikers */}
+            {(user || isBiker) && (
+              <button
+                onClick={() => setShowProfile(!showProfile)}
+                className="p-2 rounded-lg text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+                aria-label="Profile"
+              >
+                <User size={18} />
+              </button>
+            )}
+
+            {/* Logout for logged-in users, admins, bikers */}
+            {(user || isBiker) && (
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-lg text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+                aria-label="Logout"
+              >
+                <LogOut size={18} />
+              </button>
+            )}
+
+            {/* Desktop nav links — only for regular users */}
+            {showNavLinks && (
+              <nav className="hidden md:flex items-center gap-1 ml-2">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.path + item.label}
+                    to={item.path}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      location.pathname === item.path
+                        ? "bg-primary-foreground/15 text-primary-foreground"
+                        : "text-primary-foreground/60 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            )}
           </div>
         </div>
-
-        {menuOpen && (
-          <nav className="md:hidden border-t border-primary-foreground/10 animate-fade-in-up">
-            {navItems.map((item) => (
-              <Link
-                key={item.path + item.label}
-                to={item.path}
-                onClick={() => setMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
-                  location.pathname === item.path
-                    ? "bg-primary-foreground/10 text-primary-foreground"
-                    : "text-primary-foreground/60 hover:bg-primary-foreground/5"
-                }`}
-              >
-                <item.icon size={18} />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        )}
       </header>
+
+      {/* Profile dropdown */}
+      {showProfile && (
+        <div className="container px-4 max-w-md mx-auto relative z-40">
+          <div className="bg-card rounded-xl border p-4 mt-2 animate-fade-in-up shadow-lg">
+            <h3 className="font-display font-semibold text-sm mb-2">Profile</h3>
+            <div className="text-sm space-y-1">
+              {isBiker ? (
+                <>
+                  <p><span className="text-muted-foreground">Email:</span> {bikerEmail}</p>
+                  <p><span className="text-muted-foreground">Role:</span> Rider</p>
+                </>
+              ) : user ? (
+                <>
+                  <p><span className="text-muted-foreground">Email:</span> {user.email}</p>
+                  <p><span className="text-muted-foreground">Role:</span> {isAdmin ? "Admin" : "User"}</p>
+                </>
+              ) : null}
+            </div>
+            <button
+              onClick={() => setShowProfile(false)}
+              className="mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className="flex-1">{children}</main>
 
@@ -104,25 +161,27 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </footer>
 
-      {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50">
-        <div className="flex">
-          {navItems.map((item) => (
-            <Link
-              key={item.path + item.label}
-              to={item.path}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
-                location.pathname === item.path ? "text-accent" : "text-muted-foreground"
-              }`}
-            >
-              <item.icon size={20} />
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      </nav>
+      {/* Mobile bottom nav — only for regular users */}
+      {showNavLinks && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50">
+          <div className="flex">
+            {navItems.map((item) => (
+              <Link
+                key={item.path + item.label}
+                to={item.path}
+                className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
+                  location.pathname === item.path ? "text-accent" : "text-muted-foreground"
+                }`}
+              >
+                <item.icon size={20} />
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </nav>
+      )}
 
-      <div className="md:hidden h-16" />
+      {showNavLinks && <div className="md:hidden h-16" />}
     </div>
   );
 };
