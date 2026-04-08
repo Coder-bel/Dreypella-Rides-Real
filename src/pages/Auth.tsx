@@ -9,7 +9,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [matricNumber, setMatricNumber] = useState("");
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -33,7 +33,6 @@ const Auth = () => {
       const { error } = await signUp(email, password, {
         full_name: fullName,
         phone,
-        matric_number: matricNumber,
       });
       if (error) {
         setError(error.message);
@@ -76,10 +75,6 @@ const Auth = () => {
             <div>
               <label className="block text-sm font-medium mb-1.5">Phone Number</label>
               <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required className={inputClass} placeholder="080..." />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1.5">Matric Number (Optional)</label>
-              <input type="text" value={matricNumber} onChange={(e) => setMatricNumber(e.target.value)} className={inputClass} placeholder="e.g. 19/0001" />
             </div>
           </>
         )}
