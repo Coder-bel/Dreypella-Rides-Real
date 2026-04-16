@@ -19,11 +19,11 @@ const generateTrackingId = () =>
 
 /** Approximate distances (km) between major cities */
 const CITY_DISTANCES: Record<string, Record<string, number>> = {
-  lagos:    { lagos: 0, ibadan: 128, ogbomoso: 220, oyo: 168, iseyin: 200 },
-  ibadan:   { lagos: 128, ibadan: 0, ogbomoso: 100, oyo: 42, iseyin: 75 },
-  ogbomoso: { lagos: 220, ibadan: 100, ogbomoso: 0, oyo: 58, iseyin: 90 },
-  oyo:      { lagos: 168, ibadan: 42, ogbomoso: 58, oyo: 0, iseyin: 48 },
-  iseyin:   { lagos: 200, ibadan: 75, ogbomoso: 90, oyo: 48, iseyin: 0 },
+  lagos:    { lagos: 0, ibadan: 120, ogbomoso: 145, oyo: 165, iseyin: 175 },
+  ibadan:   { lagos: 120, ibadan: 0, ogbomoso: 108, oyo: 60, iseyin: 75 },
+  ogbomoso: { lagos: 145, ibadan: 108, ogbomoso: 0, oyo: 38, iseyin: 85 },
+  oyo:      { lagos: 165, ibadan: 60, ogbomoso: 38, oyo: 0, iseyin: 80 },
+  iseyin:   { lagos: 175, ibadan: 75, ogbomoso: 85, oyo: 80, iseyin: 0 },
 };
 
 const CITY_KEYWORDS = Object.keys(CITY_DISTANCES);
