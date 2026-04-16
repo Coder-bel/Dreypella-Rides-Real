@@ -4,13 +4,16 @@
  * Navbar is handled by Layout – no duplicate header here.
  */
 import { useState, useEffect } from "react";
-import { CheckCircle, Package, Bus, RefreshCw, MapPin, Clock, Users, CreditCard } from "lucide-react";
+import { CheckCircle, Package, Bus, RefreshCw, MapPin, Clock, Users, CreditCard, ShieldCheck } from "lucide-react";
 import TripsManager from "@/components/admin/TripsManager";
 import PaymentsOverview from "@/components/admin/PaymentsOverview";
 import UsersOverview from "@/components/admin/UsersOverview";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 
 type BookingStatus = "pending_payment" | "confirmed" | "completed" | "cancelled";
 
@@ -25,17 +28,51 @@ const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/15 text-yellow-600",
 };
 
+const statusLabels: Record<string, string> = {
+  pending_payment: "Pending Payment",
+  confirmed: "Payment Confirmed",
+  completed: "Ride Completed",
+  cancelled: "Cancelled",
+};
+
+type BookingWithProfile = {
+  id: string;
+  route: string;
+  travel_date: string;
+  pickup: string;
+  passengers: number;
+  price: number;
+  status: string;
+  created_at: string;
+  user_id: string;
+  profile?: { full_name: string | null; phone: string | null };
+};
+
 const Admin = () => {
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<BookingWithProfile[]>([]);
   const [dispatches, setDispatches] = useState<any[]>([]);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [verifyBooking, setVerifyBooking] = useState<BookingWithProfile | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   const fetchData = async () => {
     const [bRes, dRes] = await Promise.all([
       supabase.from("bookings").select("*").order("created_at", { ascending: false }),
       supabase.from("dispatches").select("*").order("created_at", { ascending: false }),
     ]);
-    if (bRes.data) setBookings(bRes.data);
+
+    if (bRes.data) {
+      // Enrich bookings with profile data
+      const userIds = [...new Set(bRes.data.map((b) => b.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, phone")
+        .in("user_id", userIds);
+      const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
+      setBookings(
+        bRes.data.map((b) => ({ ...b, profile: profileMap.get(b.user_id) || undefined }))
+      );
+    }
     if (dRes.data) setDispatches(dRes.data);
   };
 
@@ -61,6 +98,24 @@ const Admin = () => {
     await supabase.from("dispatches").update({ status }).eq("id", id);
     setUpdating(null);
   };
+
+  const handleVerifyPayment = async () => {
+    if (!verifyBooking) return;
+    setVerifying(true);
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: "confirmed" })
+      .eq("id", verifyBooking.id);
+    setVerifying(false);
+    if (!error) {
+      toast({ title: "Payment Verified ✅", description: `Booking DR-${verifyBooking.id.substring(0, 8).toUpperCase()} confirmed. User will see their invoice instantly.` });
+      setVerifyBooking(null);
+    } else {
+      toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+    }
+  };
+
+  const getRef = (id: string) => "DR-" + id.substring(0, 8).toUpperCase();
 
   const pendingBookings = bookings.filter((b) => b.status === "pending_payment");
   const pendingDispatches = dispatches.filter((d) => d.status !== "completed");
@@ -125,39 +180,54 @@ const Admin = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-white/10 hover:bg-transparent">
+                        <TableHead className="text-white/60">Ref</TableHead>
+                        <TableHead className="text-white/60">Passenger</TableHead>
                         <TableHead className="text-white/60">Route</TableHead>
                         <TableHead className="text-white/60">Date</TableHead>
                         <TableHead className="text-white/60">Pickup</TableHead>
                         <TableHead className="text-white/60">Seats</TableHead>
                         <TableHead className="text-white/60">Amount</TableHead>
-                        <TableHead className="text-white/60">Status</TableHead>
+                        <TableHead className="text-white/60">Payment Status</TableHead>
                         <TableHead className="text-white/60">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {bookings.map((b) => (
                         <TableRow key={b.id} className="border-white/10 hover:bg-white/5">
-                          <TableCell className="text-white font-medium text-xs">{b.route}</TableCell>
+                          <TableCell className="text-[#C8102E] font-mono font-bold text-xs">{getRef(b.id)}</TableCell>
+                          <TableCell className="text-white text-xs font-medium">{b.profile?.full_name || "—"}</TableCell>
+                          <TableCell className="text-white/70 text-xs">{b.route}</TableCell>
                           <TableCell className="text-white/70 text-xs">{b.travel_date}</TableCell>
                           <TableCell className="text-white/70 text-xs">{b.pickup}</TableCell>
                           <TableCell className="text-white/70 text-xs">{b.passengers}</TableCell>
                           <TableCell className="text-white/70 text-xs">₦{Number(b.price).toLocaleString()}</TableCell>
                           <TableCell>
-                            <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${statusColors[b.status] || "bg-white/10 text-white/60"}`}>
-                              {b.status?.replace(/_/g, " ")}
+                            <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${statusColors[b.status] || "bg-white/10 text-white/60"}`}>
+                              {statusLabels[b.status] || b.status.replace(/_/g, " ")}
                             </span>
                           </TableCell>
                           <TableCell>
-                            <select
-                              value={b.status}
-                              onChange={(e) => updateBookingStatus(b.id, e.target.value)}
-                              disabled={updating === b.id}
-                              className="bg-white/10 text-white text-xs rounded-lg px-2 py-1 border border-white/20 outline-none disabled:opacity-50"
-                            >
-                              {STATUS_OPTIONS.map((s) => (
-                                <option key={s} value={s} className="bg-[#001F3F]">{s.replace(/_/g, " ")}</option>
-                              ))}
-                            </select>
+                            <div className="flex items-center gap-2">
+                              {b.status === "pending_payment" && (
+                                <button
+                                  onClick={() => setVerifyBooking(b)}
+                                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-colors whitespace-nowrap"
+                                >
+                                  <ShieldCheck size={14} />
+                                  Verify Payment
+                                </button>
+                              )}
+                              <select
+                                value={b.status}
+                                onChange={(e) => updateBookingStatus(b.id, e.target.value)}
+                                disabled={updating === b.id}
+                                className="bg-white/10 text-white text-xs rounded-lg px-2 py-1 border border-white/20 outline-none disabled:opacity-50"
+                              >
+                                {STATUS_OPTIONS.map((s) => (
+                                  <option key={s} value={s} className="bg-[#001F3F]">{statusLabels[s] || s.replace(/_/g, " ")}</option>
+                                ))}
+                              </select>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -244,6 +314,74 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Payment Verification Modal */}
+      <Dialog open={!!verifyBooking} onOpenChange={(open) => !open && setVerifyBooking(null)}>
+        <DialogContent className="bg-[#001F3F] border-white/20 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <ShieldCheck size={20} className="text-green-400" /> Verify Payment
+            </DialogTitle>
+            <DialogDescription className="text-white/60">
+              Confirm you have received payment for this booking via Opay.
+            </DialogDescription>
+          </DialogHeader>
+          {verifyBooking && (
+            <div className="space-y-3 py-2">
+              <div className="bg-white/5 rounded-xl p-4 space-y-2 text-sm border border-white/10">
+                <div className="flex justify-between">
+                  <span className="text-white/50">Reference</span>
+                  <span className="font-mono font-bold text-[#C8102E]">{getRef(verifyBooking.id)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/50">Passenger</span>
+                  <span className="font-medium">{verifyBooking.profile?.full_name || "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/50">Phone</span>
+                  <span>{verifyBooking.profile?.phone || "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/50">Route</span>
+                  <span className="font-medium">{verifyBooking.route}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/50">Travel Date</span>
+                  <span>{verifyBooking.travel_date}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/50">Pickup</span>
+                  <span>{verifyBooking.pickup}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/50">Seats</span>
+                  <span>{verifyBooking.passengers}</span>
+                </div>
+                <div className="flex justify-between border-t border-white/10 pt-2 mt-2">
+                  <span className="text-white/50 font-semibold">Amount</span>
+                  <span className="text-lg font-bold text-green-400">₦{Number(verifyBooking.price).toLocaleString()}</span>
+                </div>
+              </div>
+              <p className="text-xs text-white/40 text-center">
+                Account: Beloved Okikioluwa Isiak • Opay • 8082144372
+              </p>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setVerifyBooking(null)} className="border-white/20 text-white hover:bg-white/10">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleVerifyPayment}
+              disabled={verifying}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold"
+            >
+              <ShieldCheck size={16} className="mr-2" />
+              {verifying ? "Confirming..." : "Yes, Payment Confirmed"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
