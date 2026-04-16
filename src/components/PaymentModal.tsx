@@ -16,7 +16,7 @@ interface PaymentModalProps {
 const ACCOUNT_DETAILS = {
   name: "Beloved Okikioluwa Isiak",
   bank: "Opay",
-  number: "9160581948",
+  number: "8082144372",
 };
 
 const PaymentModal = ({ open, onClose, onConfirmPaid, loading, totalPrice, remark }: PaymentModalProps) => {
