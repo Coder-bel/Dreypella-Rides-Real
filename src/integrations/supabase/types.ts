@@ -266,6 +266,19 @@ export type Database = {
     }
     Functions: {
       claim_biker_code: { Args: { _company_code: string }; Returns: boolean }
+      get_users_overview: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          matric_number: string
+          phone: string
+          total_packages: number
+          total_rides: number
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
