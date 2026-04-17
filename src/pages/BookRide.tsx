@@ -9,7 +9,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentModal from "@/components/PaymentModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { SUPPORT_WHATSAPP } from "@/lib/constants";
+import { SUPPORT_WHATSAPP, isValidPhone, PHONE_ERROR } from "@/lib/constants";
 
 type Trip = {
   id: string;
@@ -88,6 +88,11 @@ const BookRide = () => {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTrip) return;
+    setError("");
+    if (!isValidPhone(phone)) {
+      setError(PHONE_ERROR);
+      return;
+    }
     setShowPayment(true);
   };
 
@@ -275,7 +280,15 @@ const BookRide = () => {
 
           <div>
             <label className="block text-sm font-medium mb-1.5">Phone Number</label>
-            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required placeholder="080..." className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+              required
+              maxLength={11}
+              placeholder="08012345678"
+              className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all"
+            />
           </div>
 
           {selectedTrip && (
