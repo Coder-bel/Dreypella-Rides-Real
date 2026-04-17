@@ -318,7 +318,7 @@ const SendPackage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Sender Phone</label>
-                <input type="tel" value={form.senderPhone} onChange={(e) => handleChange("senderPhone", e.target.value)} required placeholder="080..." className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+                <input type="tel" value={form.senderPhone} onChange={(e) => handleChange("senderPhone", e.target.value.replace(/\D/g, "").slice(0, 11))} required maxLength={11} placeholder="08012345678" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
               </div>
             </div>
 
@@ -329,7 +329,7 @@ const SendPackage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Receiver Phone</label>
-                <input type="tel" value={form.receiverPhone} onChange={(e) => handleChange("receiverPhone", e.target.value)} required placeholder="080..." className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+                <input type="tel" value={form.receiverPhone} onChange={(e) => handleChange("receiverPhone", e.target.value.replace(/\D/g, "").slice(0, 11))} required maxLength={11} placeholder="08012345678" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
               </div>
             </div>
 

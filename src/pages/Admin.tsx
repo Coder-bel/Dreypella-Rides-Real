@@ -4,10 +4,11 @@
  * Navbar is handled by Layout – no duplicate header here.
  */
 import { useState, useEffect } from "react";
-import { CheckCircle, Package, Bus, RefreshCw, MapPin, Clock, Users, CreditCard, ShieldCheck } from "lucide-react";
+import { CheckCircle, Package, Bus, RefreshCw, MapPin, Clock, Users, CreditCard, ShieldCheck, Bike } from "lucide-react";
 import TripsManager from "@/components/admin/TripsManager";
 import PaymentsOverview from "@/components/admin/PaymentsOverview";
 import UsersOverview from "@/components/admin/UsersOverview";
+import BikersOnboarding from "@/components/admin/BikersOnboarding";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -163,6 +164,9 @@ const Admin = () => {
             <TabsTrigger value="users" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
               <Users size={16} className="mr-2" /> Users
             </TabsTrigger>
+            <TabsTrigger value="bikers" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
+              <Bike size={16} className="mr-2" /> Bikers
+            </TabsTrigger>
           </TabsList>
 
           {/* === BOOKINGS TAB === */}
@@ -311,6 +315,11 @@ const Admin = () => {
           {/* === USERS TAB === */}
           <TabsContent value="users">
             <UsersOverview />
+          </TabsContent>
+
+          {/* === BIKERS TAB === */}
+          <TabsContent value="bikers">
+            <BikersOnboarding />
           </TabsContent>
         </Tabs>
       </div>
