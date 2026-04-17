@@ -24,11 +24,11 @@ export const PHONE_ERROR =
 export const isValidPhone = (phone: string) =>
   PHONE_REGEX.test(phone.trim());
 
-/** Password: 8+ chars, at least one letter, one number, one special char */
+/** Password: 8+ chars, at least one uppercase, one lowercase, one number, one special char */
 export const PASSWORD_REGEX =
-  /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 export const PASSWORD_ERROR =
-  "Password must be at least 8 characters and include letters, numbers, and special characters";
+  "Password must be at least 8 characters long and include uppercase letters, lowercase letters, numbers, and special characters (e.g., !@#$%).";
 
 export const isValidPassword = (pw: string) => PASSWORD_REGEX.test(pw);
 
