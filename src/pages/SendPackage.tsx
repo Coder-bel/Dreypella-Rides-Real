@@ -9,7 +9,7 @@ import { Package, CheckCircle, MessageCircle, Clock, Calculator } from "lucide-r
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { SUPPORT_WHATSAPP } from "@/lib/constants";
+import { SUPPORT_WHATSAPP, OPAY_ACCOUNT, isValidPhone, PHONE_ERROR } from "@/lib/constants";
 
 const packageTypes = ["Small Envelope", "Medium Box", "Large Box", "Electronics", "Documents", "Other"];
 const LARGE_PACKAGE_TYPES = ["Large Box"];
@@ -116,6 +116,15 @@ const SendPackage = () => {
     e.preventDefault();
     if (!user || !priceBreakdown) return;
 
+    if (!isValidPhone(form.senderPhone)) {
+      setError("Sender " + PHONE_ERROR.toLowerCase());
+      return;
+    }
+    if (!isValidPhone(form.receiverPhone)) {
+      setError("Receiver " + PHONE_ERROR.toLowerCase());
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -179,7 +188,7 @@ const SendPackage = () => {
               The receiver will pay ₦{priceBreakdown?.total.toLocaleString()} upon delivery.
             </p>
             <p className="text-center text-muted-foreground mt-2">
-              For reference — Account: Beloved Okikioluwa Isiak, Opay, 8082144372
+              For reference — Account: {OPAY_ACCOUNT.name}, {OPAY_ACCOUNT.bank}, {OPAY_ACCOUNT.number}
             </p>
           </div>
           <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 text-center mb-4">
@@ -309,7 +318,7 @@ const SendPackage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Sender Phone</label>
-                <input type="tel" value={form.senderPhone} onChange={(e) => handleChange("senderPhone", e.target.value)} required placeholder="080..." className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+                <input type="tel" value={form.senderPhone} onChange={(e) => handleChange("senderPhone", e.target.value.replace(/\D/g, "").slice(0, 11))} required maxLength={11} placeholder="08012345678" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
               </div>
             </div>
 
@@ -320,7 +329,7 @@ const SendPackage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Receiver Phone</label>
-                <input type="tel" value={form.receiverPhone} onChange={(e) => handleChange("receiverPhone", e.target.value)} required placeholder="080..." className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+                <input type="tel" value={form.receiverPhone} onChange={(e) => handleChange("receiverPhone", e.target.value.replace(/\D/g, "").slice(0, 11))} required maxLength={11} placeholder="08012345678" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
               </div>
             </div>
 

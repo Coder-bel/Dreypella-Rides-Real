@@ -16,21 +16,36 @@ export type Database = {
     Tables: {
       bikers: {
         Row: {
+          company_code: string | null
           created_at: string
-          email: string
+          email: string | null
+          full_name: string | null
           id: string
+          plate_number: string | null
+          status: string
+          user_id: string | null
           whatsapp_number: string
         }
         Insert: {
+          company_code?: string | null
           created_at?: string
-          email: string
+          email?: string | null
+          full_name?: string | null
           id?: string
+          plate_number?: string | null
+          status?: string
+          user_id?: string | null
           whatsapp_number: string
         }
         Update: {
+          company_code?: string | null
           created_at?: string
-          email?: string
+          email?: string | null
+          full_name?: string | null
           id?: string
+          plate_number?: string | null
+          status?: string
+          user_id?: string | null
           whatsapp_number?: string
         }
         Relationships: []
@@ -250,6 +265,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_biker_code: { Args: { _company_code: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -259,7 +275,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "biker"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -387,7 +403,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "biker"],
     },
   },
 } as const

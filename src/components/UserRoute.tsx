@@ -1,7 +1,7 @@
 /**
  * Strict role-based access control implemented.
- * Admin-only route. Redirects bikers to /bikers, regular users to /dashboard,
- * unauthenticated visitors to /auth. Shows a clear "Access Denied" toast.
+ * Wraps regular-user-only pages (Book Ride, Send Package, Dashboard).
+ * Admins are redirected to /admin, bikers to /bikers, guests to /auth.
  */
 import { Navigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -9,12 +9,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+const UserRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
   const { role, loading } = useUserRole();
 
   useEffect(() => {
-    if (!loading && !authLoading && role !== "admin") {
+    if (!loading && !authLoading && (role === "admin" || role === "biker")) {
       toast.error("Access Denied. You do not have permission to view this page.");
     }
   }, [loading, authLoading, role]);
@@ -27,10 +27,10 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!user && role !== "biker") return <Navigate to="/auth" replace />;
+  if (role === "admin") return <Navigate to="/admin" replace />;
   if (role === "biker") return <Navigate to="/bikers" replace />;
-  if (role !== "admin") return <Navigate to="/dashboard" replace />;
+  if (!user) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 };
 
-export default AdminRoute;
+export default UserRoute;

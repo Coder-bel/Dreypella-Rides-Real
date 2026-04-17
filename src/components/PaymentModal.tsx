@@ -13,11 +13,9 @@ interface PaymentModalProps {
   remark?: string;
 }
 
-const ACCOUNT_DETAILS = {
-  name: "Beloved Okikioluwa Isiak",
-  bank: "Opay",
-  number: "8082144372",
-};
+import { OPAY_ACCOUNT } from "@/lib/constants";
+
+const ACCOUNT_DETAILS = OPAY_ACCOUNT;
 
 const PaymentModal = ({ open, onClose, onConfirmPaid, loading, totalPrice, remark }: PaymentModalProps) => {
   const [copied, setCopied] = useState("");
