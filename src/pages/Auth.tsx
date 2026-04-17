@@ -2,6 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { LogIn, UserPlus } from "lucide-react";
+import {
+  isValidPhone,
+  PHONE_ERROR,
+  isValidPassword,
+  PASSWORD_ERROR,
+} from "@/lib/constants";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,7 +15,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -20,6 +26,13 @@ const Auth = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    if (!isLogin) {
+      if (!fullName.trim()) return setError("Full Name is required");
+      if (!isValidPhone(phone)) return setError(PHONE_ERROR);
+      if (!isValidPassword(password)) return setError(PASSWORD_ERROR);
+    }
+
     setLoading(true);
 
     if (isLogin) {
@@ -74,7 +87,15 @@ const Auth = () => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5">Phone Number</label>
-              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required className={inputClass} placeholder="080..." />
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                required
+                maxLength={11}
+                className={inputClass}
+                placeholder="08012345678"
+              />
             </div>
           </>
         )}
@@ -85,7 +106,10 @@ const Auth = () => {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1.5">Password</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className={inputClass} placeholder="Min 6 characters" />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} placeholder={isLogin ? "Your password" : "8+ chars, letters + numbers + special"} />
+          {!isLogin && (
+            <p className="text-[11px] text-muted-foreground mt-1">{PASSWORD_ERROR}</p>
+          )}
         </div>
 
         <button
