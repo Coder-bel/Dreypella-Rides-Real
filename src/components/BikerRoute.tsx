@@ -1,27 +1,34 @@
 /**
- * Biker auth is separate for MVP. In production use proper role-based auth with Supabase metadata or Edge Functions.
- * Bikers can ONLY access /bikers and /bikers-login. No access to /admin or user routes.
+ * Strict role-based access control implemented.
+ * Biker-only route. Accepts either Supabase 'biker' role OR legacy localStorage session.
+ * Redirects admins to /admin, regular users to /dashboard, others to /bikers-login.
  */
 import { Navigate } from "react-router-dom";
-
-const isBikerAuthenticated = () => {
-  const flag = localStorage.getItem("isBiker");
-  const expiry = localStorage.getItem("bikerExpiry");
-  if (flag !== "true" || !expiry) return false;
-  if (Date.now() > Number(expiry)) {
-    localStorage.removeItem("isBiker");
-    localStorage.removeItem("bikerExpiry");
-    localStorage.removeItem("bikerEmail");
-    return false;
-  }
-  return true;
-};
+import { useEffect } from "react";
+import { useUserRole } from "@/hooks/useUserRole";
+import { toast } from "sonner";
 
 const BikerRoute = ({ children }: { children: React.ReactNode }) => {
-  if (!isBikerAuthenticated()) {
-    return <Navigate to="/bikers-login" replace />;
+  const { role, loading } = useUserRole();
+
+  useEffect(() => {
+    if (!loading && role !== "biker" && role !== "guest") {
+      toast.error("Access Denied. You do not have permission to view this page.");
+    }
+  }, [loading, role]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-3 border-accent/30 border-t-accent rounded-full animate-spin" />
+      </div>
+    );
   }
-  return <>{children}</>;
+
+  if (role === "biker") return <>{children}</>;
+  if (role === "admin") return <Navigate to="/admin" replace />;
+  if (role === "user") return <Navigate to="/dashboard" replace />;
+  return <Navigate to="/bikers-login" replace />;
 };
 
 export default BikerRoute;
