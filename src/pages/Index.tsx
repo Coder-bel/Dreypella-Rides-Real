@@ -49,7 +49,7 @@ const Index = () => {
                   </Link>
                   <Link
                     to="/send-package"
-                    className="inline-flex items-center justify-center gap-2 bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-105 border border-primary-foreground/30"
+                    className="inline-flex items-center justify-center gap-2 bg-white text-[hsl(210,100%,12%)] hover:bg-white/90 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-105 border border-white shadow-lg"
                   >
                     <Package size={18} />
                     Send a Package

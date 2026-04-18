@@ -63,7 +63,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setDark(!dark)}
-              className="p-2 rounded-lg text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+              className="p-2 rounded-lg text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
               aria-label="Toggle dark mode"
             >
               {dark ? <Sun size={18} /> : <Moon size={18} />}
@@ -73,7 +73,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             {(user || isBiker) && (
               <button
                 onClick={() => setShowProfile(!showProfile)}
-                className="p-2 rounded-lg text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+                className="p-2 rounded-lg text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
                 aria-label="Profile"
               >
                 <User size={18} />
@@ -84,7 +84,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             {(user || isBiker) && (
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+                className="p-2 rounded-lg text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
                 aria-label="Logout"
               >
                 <LogOut size={18} />
