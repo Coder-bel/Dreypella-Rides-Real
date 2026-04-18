@@ -123,51 +123,53 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-[#001F3F] text-white">
-      <div className="container px-4 py-6 max-w-6xl mx-auto">
+      <div className="container px-3 sm:px-4 py-4 sm:py-6 max-w-6xl mx-auto">
         {/* Refresh button */}
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-3 sm:mb-4">
           <button onClick={fetchData} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/60" title="Refresh">
             <RefreshCw size={18} />
           </button>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-5 sm:mb-6">
           {[
             { label: "Pending Rides", value: pendingBookings.length, icon: Bus, color: "text-yellow-400" },
             { label: "Total Rides", value: bookings.length, icon: Users, color: "text-blue-400" },
             { label: "Pending Packages", value: pendingDispatches.length, icon: Package, color: "text-yellow-400" },
             { label: "Total Packages", value: dispatches.length, icon: MapPin, color: "text-green-400" },
           ].map((s, i) => (
-            <div key={i} className="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+            <div key={i} className="bg-white/5 rounded-xl p-3 sm:p-4 border border-white/10 text-center">
               <s.icon size={20} className={`mx-auto mb-1 ${s.color}`} />
-              <p className={`text-2xl font-display font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-white/50">{s.label}</p>
+              <p className={`text-xl sm:text-2xl font-display font-bold ${s.color}`}>{s.value}</p>
+              <p className="text-[11px] sm:text-xs text-white/50">{s.label}</p>
             </div>
           ))}
         </div>
 
         <Tabs defaultValue="bookings" className="space-y-4">
-          <TabsList className="bg-white/5 border border-white/10 flex-wrap">
-            <TabsTrigger value="bookings" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
-              <Bus size={16} className="mr-2" /> Bookings ({bookings.length})
-            </TabsTrigger>
-            <TabsTrigger value="dispatches" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
-              <Package size={16} className="mr-2" /> Packages ({dispatches.length})
-            </TabsTrigger>
-            <TabsTrigger value="payments" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
-              <CreditCard size={16} className="mr-2" /> Payments
-            </TabsTrigger>
-            <TabsTrigger value="trips" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
-              <Clock size={16} className="mr-2" /> Trips
-            </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
-              <Users size={16} className="mr-2" /> Users
-            </TabsTrigger>
-            <TabsTrigger value="bikers" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white">
-              <Bike size={16} className="mr-2" /> Bikers
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+            <TabsList className="bg-white/5 border border-white/10 inline-flex w-max sm:w-auto sm:flex-wrap">
+              <TabsTrigger value="bookings" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
+                <Bus size={16} className="mr-1.5 sm:mr-2" /> Bookings ({bookings.length})
+              </TabsTrigger>
+              <TabsTrigger value="dispatches" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
+                <Package size={16} className="mr-1.5 sm:mr-2" /> Packages ({dispatches.length})
+              </TabsTrigger>
+              <TabsTrigger value="payments" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
+                <CreditCard size={16} className="mr-1.5 sm:mr-2" /> Payments
+              </TabsTrigger>
+              <TabsTrigger value="trips" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
+                <Clock size={16} className="mr-1.5 sm:mr-2" /> Trips
+              </TabsTrigger>
+              <TabsTrigger value="users" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
+                <Users size={16} className="mr-1.5 sm:mr-2" /> Users
+              </TabsTrigger>
+              <TabsTrigger value="bikers" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
+                <Bike size={16} className="mr-1.5 sm:mr-2" /> Bikers
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* === BOOKINGS TAB === */}
           <TabsContent value="bookings">
