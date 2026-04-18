@@ -54,33 +54,50 @@
   }
 
   .dark {
-    --background: 210 60% 6%;
-    --foreground: 210 20% 94%;
+    /* Deep navy background for readability */
+    --background: 222 47% 11%;        /* #0F172A */
+    --foreground: 210 40% 96%;        /* #F1F5F9 — high-contrast main text */
 
-    --card: 210 50% 10%;
-    --card-foreground: 210 20% 94%;
+    --card: 217 33% 17%;              /* #1E293B */
+    --card-foreground: 210 40% 96%;
 
-    --popover: 210 50% 10%;
-    --popover-foreground: 210 20% 94%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 96%;
 
-    --primary: 210 20% 94%;
-    --primary-foreground: 210 100% 12%;
+    --primary: 210 40% 96%;
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 210 40% 16%;
-    --secondary-foreground: 210 20% 94%;
+    --secondary: 217 33% 22%;
+    --secondary-foreground: 210 40% 96%;
 
-    --muted: 210 40% 16%;
-    --muted-foreground: 210 15% 60%;
+    --muted: 217 33% 22%;
+    --muted-foreground: 215 20% 80%;  /* #CBD5E1 — softer secondary text */
 
-    --accent: 352 88% 50%;
+    --accent: 352 88% 55%;            /* brighter red for dark bg */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 30%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 30% 18%;
-    --input: 210 30% 18%;
-    --ring: 210 20% 80%;
+    --border: 215 25% 30%;            /* visible borders */
+    --input: 215 25% 30%;
+    --ring: 352 88% 55%;
+
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 352 88% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 20%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 215 25% 25%;
+    --sidebar-ring: 352 88% 55%;
+
+    /* Custom brand tokens — keep brand identity */
+    --navy: 210 100% 12%;
+    --navy-light: 210 60% 20%;
+    --red-brand: 352 88% 55%;
+    --red-brand-light: 352 80% 65%;
+    --gold: 42 90% 60%;
   }
 }
 
@@ -92,10 +109,26 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-family: 'Inter', sans-serif;
+    -webkit-tap-highlight-color: transparent;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Mobile-first touch targets — buttons & links should be at least 40px tall on small screens */
+  @media (max-width: 767px) {
+    button,
+    a[role="button"],
+    [type="button"],
+    [type="submit"] {
+      min-height: 40px;
+    }
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      font-size: 16px; /* prevents iOS zoom on focus */
+    }
   }
 }
 
