@@ -372,7 +372,7 @@ const Admin = () => {
                 </div>
               </div>
               <p className="text-xs text-white/40 text-center">
-                Account: Beloved Okikioluwa Isiak • Opay • 8082144372
+                Account: Dreypella Ride • Opay • 8082144372
               </p>
             </div>
           )}

@@ -35,3 +35,13 @@ export const isValidPassword = (pw: string) => PASSWORD_REGEX.test(pw);
 /** Generate a unique company code: DPR-XXXX (4 digits) */
 export const generateCompanyCode = () =>
   "DPR-" + Math.floor(1000 + Math.random() * 9000);
+
+/**
+ * Derive a synthetic email for a biker from their Company Code.
+ * Bikers never see or enter an email — this lets us reuse Supabase auth
+ * while exposing only the DPR-XXXX code in the UI.
+ * Example: "DPR-7821" → "dpr7821@bikers.dreypella.local"
+ */
+export const BIKER_EMAIL_DOMAIN = "bikers.dreypella.local";
+export const bikerCodeToEmail = (code: string) =>
+  `${code.trim().toUpperCase().replace("-", "").toLowerCase()}@${BIKER_EMAIL_DOMAIN}`;

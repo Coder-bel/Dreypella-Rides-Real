@@ -80,13 +80,14 @@ const BikersOnboarding = () => {
     setLoading(true);
     const code = await getUniqueCode();
 
+    const { bikerCodeToEmail } = await import("@/lib/constants");
     const { error: insertErr } = await supabase.from("bikers").insert({
       full_name: fullName.trim(),
       whatsapp_number: phone.trim(),
       plate_number: plate.trim() || null,
       company_code: code,
       status: "pending_signup",
-      email: "",
+      email: bikerCodeToEmail(code),
     });
 
     setLoading(false);
