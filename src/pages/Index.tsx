@@ -28,10 +28,10 @@ const Index = () => {
             <h1 className="font-display font-bold text-2xl sm:text-4xl lg:text-5xl leading-tight animate-fade-in-up text-primary-foreground">
               DREYPELLA <span className="text-accent">RIDE</span>
             </h1>
-            <p className="text-primary-foreground/80 text-sm sm:text-base mt-2 max-w-lg mx-auto animate-fade-in-up-delay-1">
+            <p className="text-white text-sm sm:text-base mt-2 max-w-lg mx-auto animate-fade-in-up-delay-1 font-medium drop-shadow">
               Reliable Inter-City Travel & Package Delivery Across Oyo State
             </p>
-            <p className="text-primary-foreground/60 text-xs sm:text-sm mt-1 max-w-md mx-auto animate-fade-in-up-delay-1">
+            <p className="text-white/90 text-xs sm:text-sm mt-2 max-w-md mx-auto animate-fade-in-up-delay-1 drop-shadow">
               Safe, affordable, and convenient rides and deliveries connecting Lagos, Ibadan, Ogbomoso, Iseyin, and Oyo. Book now for your next trip or send packages hassle-free.
             </p>
 
