@@ -4,10 +4,19 @@
  */
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bus, Package, Home, User, Moon, Sun, LogIn, LogOut, MessageCircle } from "lucide-react";
+import { Bus, Package, Home, User, Moon, Sun, LogIn, LogOut, MessageCircle, Shield, Bike } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { SUPPORT_WHATSAPP } from "@/lib/constants";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ProfileInfo {
+  full_name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  company_code?: string | null;
+  plate_number?: string | null;
+}
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -16,6 +25,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const { role } = useUserRole();
   const [dark, setDark] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [profileInfo, setProfileInfo] = useState<ProfileInfo>({});
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -24,6 +34,45 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const isBiker = role === "biker";
   const isAdmin = role === "admin";
   const bikerEmail = localStorage.getItem("bikerEmail") || "";
+
+  // Fetch role-specific profile when dropdown is opened
+  useEffect(() => {
+    if (!showProfile) return;
+    const load = async () => {
+      if (isBiker && user) {
+        // Supabase biker — read from bikers table
+        const { data } = await supabase
+          .from("bikers")
+          .select("full_name, whatsapp_number, company_code, plate_number, email")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (data) {
+          setProfileInfo({
+            full_name: data.full_name,
+            phone: data.whatsapp_number,
+            email: data.email,
+            company_code: data.company_code,
+            plate_number: data.plate_number,
+          });
+        }
+      } else if (isBiker && !user) {
+        // Legacy localStorage biker
+        setProfileInfo({ email: bikerEmail, full_name: "Rider" });
+      } else if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("full_name, phone")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        setProfileInfo({
+          full_name: data?.full_name,
+          phone: data?.phone,
+          email: user.email,
+        });
+      }
+    };
+    load();
+  }, [showProfile, user, isBiker, bikerEmail]);
 
   const handleLogout = async () => {
     if (isBiker) {
