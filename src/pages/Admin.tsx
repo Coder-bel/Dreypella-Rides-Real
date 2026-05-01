@@ -327,9 +327,19 @@ const Admin = () => {
             <UsersOverview />
           </TabsContent>
 
-          {/* === BIKERS TAB === */}
+          {/* === BIKERS TAB (onboard) === */}
           <TabsContent value="bikers">
             <BikersOnboarding />
+          </TabsContent>
+
+          {/* === BIKERS OVERVIEW TAB === */}
+          <TabsContent value="bikers-overview">
+            <BikersOverview />
+          </TabsContent>
+
+          {/* === ADMIN INVITES TAB === */}
+          <TabsContent value="admin-invites">
+            <AdminInvites />
           </TabsContent>
         </Tabs>
       </div>
