@@ -4,11 +4,13 @@
  * Navbar is handled by Layout – no duplicate header here.
  */
 import { useState, useEffect } from "react";
-import { CheckCircle, Package, Bus, RefreshCw, MapPin, Clock, Users, CreditCard, ShieldCheck, Bike } from "lucide-react";
+import { CheckCircle, Package, Bus, RefreshCw, MapPin, Clock, Users, CreditCard, ShieldCheck, Bike, UserPlus } from "lucide-react";
 import TripsManager from "@/components/admin/TripsManager";
 import PaymentsOverview from "@/components/admin/PaymentsOverview";
 import UsersOverview from "@/components/admin/UsersOverview";
 import BikersOnboarding from "@/components/admin/BikersOnboarding";
+import BikersOverview from "@/components/admin/BikersOverview";
+import AdminInvites from "@/components/admin/AdminInvites";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
