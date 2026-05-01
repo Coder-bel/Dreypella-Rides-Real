@@ -40,6 +40,7 @@ const App = () => (
               <Route path="/bikers-login" element={<BikersLogin />} />
               <Route path="/bikers-signup" element={<BikersSignup />} />
               <Route path="/bikers" element={<BikerRoute><BikersDashboard /></BikerRoute>} />
+              <Route path="/admin-signup" element={<AdminSignup />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
