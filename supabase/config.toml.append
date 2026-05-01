@@ -1,0 +1,5 @@
+[functions.send-password-otp]
+verify_jwt = false
+
+[functions.verify-password-otp]
+verify_jwt = false
