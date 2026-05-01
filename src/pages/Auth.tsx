@@ -136,11 +136,15 @@ const Auth = () => {
       </form>
 
       {isLogin && (
-        <p className="text-center text-xs mt-3">
-          <button onClick={() => setShowForgot(true)} className="text-accent hover:underline font-medium">
+        <div className="text-center text-xs mt-3 space-x-3">
+          <button onClick={() => setShowForgot("user")} className="text-accent hover:underline font-medium">
             Forgot Password?
           </button>
-        </p>
+          <span className="text-muted-foreground">·</span>
+          <button onClick={() => setShowForgot("admin")} className="text-muted-foreground hover:text-accent hover:underline">
+            Admin reset
+          </button>
+        </div>
       )}
 
       <p className="text-center text-sm text-muted-foreground mt-6">
@@ -153,7 +157,7 @@ const Auth = () => {
         </button>
       </p>
 
-      <ForgotPasswordDialog open={showForgot} onClose={() => setShowForgot(false)} role="user" />
+      <ForgotPasswordDialog open={!!showForgot} onClose={() => setShowForgot(null)} role={showForgot || "user"} />
     </div>
   );
 };
