@@ -29,6 +29,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const [dark, setDark] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [profileInfo, setProfileInfo] = useState<ProfileInfo>({});
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editPlate, setEditPlate] = useState("");
+  const [editBusy, setEditBusy] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
