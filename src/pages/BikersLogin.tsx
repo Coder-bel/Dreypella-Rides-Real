@@ -105,6 +105,12 @@ const BikersLogin = () => {
               {loading ? "Signing in..." : "Sign In"}
             </button>
 
+            <p className="text-xs text-center pt-1">
+              <button type="button" onClick={() => setShowForgot(true)} className="text-accent font-medium hover:underline">
+                Forgot Password?
+              </button>
+            </p>
+
             <p className="text-xs text-center text-muted-foreground pt-2">
               No account yet?{" "}
               <Link to="/bikers-signup" className="text-accent font-semibold hover:underline">
@@ -114,6 +120,8 @@ const BikersLogin = () => {
           </form>
         </div>
       </main>
+
+      <ForgotPasswordDialog open={showForgot} onClose={() => setShowForgot(false)} role="biker" />
     </div>
   );
 };
