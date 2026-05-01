@@ -135,6 +135,14 @@ const Auth = () => {
         </button>
       </form>
 
+      {isLogin && (
+        <p className="text-center text-xs mt-3">
+          <button onClick={() => setShowForgot(true)} className="text-accent hover:underline font-medium">
+            Forgot Password?
+          </button>
+        </p>
+      )}
+
       <p className="text-center text-sm text-muted-foreground mt-6">
         {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
         <button
@@ -144,6 +152,8 @@ const Auth = () => {
           {isLogin ? "Sign Up" : "Sign In"}
         </button>
       </p>
+
+      <ForgotPasswordDialog open={showForgot} onClose={() => setShowForgot(false)} role="user" />
     </div>
   );
 };
