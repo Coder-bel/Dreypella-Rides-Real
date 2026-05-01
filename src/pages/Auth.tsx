@@ -8,9 +8,11 @@ import {
   isValidPassword,
   PASSWORD_ERROR,
 } from "@/lib/constants";
+import ForgotPasswordDialog from "@/components/ForgotPasswordDialog";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showForgot, setShowForgot] = useState<null | "user" | "admin">(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -133,6 +135,18 @@ const Auth = () => {
         </button>
       </form>
 
+      {isLogin && (
+        <div className="text-center text-xs mt-3 space-x-3">
+          <button onClick={() => setShowForgot("user")} className="text-accent hover:underline font-medium">
+            Forgot Password?
+          </button>
+          <span className="text-muted-foreground">·</span>
+          <button onClick={() => setShowForgot("admin")} className="text-muted-foreground hover:text-accent hover:underline">
+            Admin reset
+          </button>
+        </div>
+      )}
+
       <p className="text-center text-sm text-muted-foreground mt-6">
         {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
         <button
@@ -142,6 +156,8 @@ const Auth = () => {
           {isLogin ? "Sign Up" : "Sign In"}
         </button>
       </p>
+
+      <ForgotPasswordDialog open={!!showForgot} onClose={() => setShowForgot(null)} role={showForgot || "user"} />
     </div>
   );
 };

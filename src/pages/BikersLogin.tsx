@@ -7,6 +7,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Bike, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { bikerCodeToEmail } from "@/lib/constants";
+import ForgotPasswordDialog from "@/components/ForgotPasswordDialog";
 
 const BikersLogin = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const BikersLogin = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +105,12 @@ const BikersLogin = () => {
               {loading ? "Signing in..." : "Sign In"}
             </button>
 
+            <p className="text-xs text-center pt-1">
+              <button type="button" onClick={() => setShowForgot(true)} className="text-accent font-medium hover:underline">
+                Forgot Password?
+              </button>
+            </p>
+
             <p className="text-xs text-center text-muted-foreground pt-2">
               No account yet?{" "}
               <Link to="/bikers-signup" className="text-accent font-semibold hover:underline">
@@ -112,6 +120,8 @@ const BikersLogin = () => {
           </form>
         </div>
       </main>
+
+      <ForgotPasswordDialog open={showForgot} onClose={() => setShowForgot(false)} role="biker" />
     </div>
   );
 };

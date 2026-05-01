@@ -47,10 +47,10 @@ const BikersDashboard = () => {
   };
 
   const fetchDispatches = async () => {
+    // RLS now restricts what each biker sees: pending pool + own assigned/completed
     const { data } = await supabase
       .from("dispatches")
       .select("*")
-      .in("status", ["pending_delivery", "assigned", "completed"])
       .order("created_at", { ascending: false });
     if (data) setDispatches(data);
     setLoading(false);
@@ -68,49 +68,51 @@ const BikersDashboard = () => {
   }, [user]);
 
   const handleAccept = async (dispatch: any) => {
-    if (!biker?.whatsapp_number) {
-      toast({ title: "Error", description: "Biker profile not loaded.", variant: "destructive" });
+    const { data, error } = await supabase.rpc("claim_dispatch" as any, { _dispatch_id: dispatch.id });
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
-    const { error } = await supabase
-      .from("dispatches")
-      .update({ status: "assigned", biker_assigned: bikerIdentifier, biker_phone: biker.whatsapp_number })
-      .eq("id", dispatch.id);
-    if (error) {
-      toast({ title: "Error", description: "Failed to accept delivery", variant: "destructive" });
-    } else {
-      toast({ title: "✅ Delivery Accepted!", description: `Package ${dispatch.tracking_id} assigned to you.` });
+    const res: any = data;
+    if (!res?.success) {
+      const msg = res?.error === "already_taken"
+        ? "This delivery was just accepted by another biker."
+        : res?.error === "biker_inactive"
+        ? "Your account is inactive. Contact admin."
+        : "Failed to accept delivery.";
+      toast({ title: "Could not accept", description: msg, variant: "destructive" });
+      fetchDispatches();
+      return;
     }
+    toast({ title: "✅ Delivery Accepted!", description: `Package ${dispatch.tracking_id} assigned to you.` });
   };
 
   const handleDecline = async (dispatch: any) => {
-    // Decline = revert assignment back to pending pool (only on assigned ones owned by this biker)
+    // Decline = release back to pending pool (only own assigned dispatches are updatable per RLS)
     const { error } = await supabase
       .from("dispatches")
-      .update({ status: "pending_delivery", biker_assigned: null, biker_phone: null })
+      .update({ status: "pending_delivery", biker_assigned: null, biker_phone: null, assigned_biker_id: null })
       .eq("id", dispatch.id);
     if (error) {
       toast({ title: "Error", description: "Failed to decline", variant: "destructive" });
     } else {
-      toast({ title: "Trip Declined", description: `Package ${dispatch.tracking_id} returned to pool.` });
+      toast({ title: "Trip Released", description: `Package ${dispatch.tracking_id} returned to pool.` });
     }
   };
 
   const handleMarkDelivered = async (dispatch: any) => {
-    const { error } = await supabase
-      .from("dispatches")
-      .update({ status: "completed" })
-      .eq("id", dispatch.id);
-    if (error) {
-      toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+    const { data, error } = await supabase.rpc("mark_dispatch_delivered" as any, { _dispatch_id: dispatch.id });
+    if (error || !data) {
+      toast({ title: "Error", description: "Failed to mark delivered", variant: "destructive" });
     } else {
       toast({ title: "Delivered!", description: `Package ${dispatch.tracking_id} marked as completed` });
     }
   };
 
+  // RLS already restricts visibility to: pending pool (unassigned) OR own assigned/completed.
   const pendingDispatches = dispatches.filter((d) => d.status === "pending_delivery");
-  const assignedDispatches = dispatches.filter((d) => d.status === "assigned" && d.biker_assigned === bikerIdentifier);
-  const completedDispatches = dispatches.filter((d) => d.status === "completed" && d.biker_assigned === bikerIdentifier);
+  const assignedDispatches = dispatches.filter((d) => d.status === "assigned");
+  const completedDispatches = dispatches.filter((d) => d.status === "completed");
 
   // Today's schedule: assigned + completed today
   const today = new Date().toDateString();

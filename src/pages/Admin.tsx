@@ -4,11 +4,13 @@
  * Navbar is handled by Layout – no duplicate header here.
  */
 import { useState, useEffect } from "react";
-import { CheckCircle, Package, Bus, RefreshCw, MapPin, Clock, Users, CreditCard, ShieldCheck, Bike } from "lucide-react";
+import { CheckCircle, Package, Bus, RefreshCw, MapPin, Clock, Users, CreditCard, ShieldCheck, Bike, UserPlus } from "lucide-react";
 import TripsManager from "@/components/admin/TripsManager";
 import PaymentsOverview from "@/components/admin/PaymentsOverview";
 import UsersOverview from "@/components/admin/UsersOverview";
 import BikersOnboarding from "@/components/admin/BikersOnboarding";
+import BikersOverview from "@/components/admin/BikersOverview";
+import AdminInvites from "@/components/admin/AdminInvites";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -168,6 +170,12 @@ const Admin = () => {
               <TabsTrigger value="bikers" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
                 <Bike size={16} className="mr-1.5 sm:mr-2" /> Bikers
               </TabsTrigger>
+              <TabsTrigger value="bikers-overview" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
+                <Bike size={16} className="mr-1.5 sm:mr-2" /> Bikers Overview
+              </TabsTrigger>
+              <TabsTrigger value="admin-invites" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
+                <UserPlus size={16} className="mr-1.5 sm:mr-2" /> Onboard Admin
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -319,9 +327,19 @@ const Admin = () => {
             <UsersOverview />
           </TabsContent>
 
-          {/* === BIKERS TAB === */}
+          {/* === BIKERS TAB (onboard) === */}
           <TabsContent value="bikers">
             <BikersOnboarding />
+          </TabsContent>
+
+          {/* === BIKERS OVERVIEW TAB === */}
+          <TabsContent value="bikers-overview">
+            <BikersOverview />
+          </TabsContent>
+
+          {/* === ADMIN INVITES TAB === */}
+          <TabsContent value="admin-invites">
+            <AdminInvites />
           </TabsContent>
         </Tabs>
       </div>

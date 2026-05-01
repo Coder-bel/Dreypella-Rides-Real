@@ -4,8 +4,11 @@
  */
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bus, Package, Home, User, Moon, Sun, LogIn, LogOut, MessageCircle, Shield, Bike } from "lucide-react";
+import { Bus, Package, Home, User, Moon, Sun, LogIn, LogOut, MessageCircle, Shield, Bike, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
+import { isValidPhone, PHONE_ERROR } from "@/lib/constants";
 import { useUserRole } from "@/hooks/useUserRole";
 import { SUPPORT_WHATSAPP } from "@/lib/constants";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +29,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const [dark, setDark] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [profileInfo, setProfileInfo] = useState<ProfileInfo>({});
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editPlate, setEditPlate] = useState("");
+  const [editBusy, setEditBusy] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -196,15 +204,81 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 </>
               )}
             </div>
-            <button
-              onClick={() => setShowProfile(false)}
-              className="mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Close
-            </button>
+            <div className="mt-3 flex items-center gap-3">
+              {isBiker && user && (
+                <button
+                  onClick={() => {
+                    setEditName(profileInfo.full_name || "");
+                    setEditPhone(profileInfo.phone || "");
+                    setEditPlate(profileInfo.plate_number || "");
+                    setEditOpen(true);
+                    setShowProfile(false);
+                  }}
+                  className="text-xs flex items-center gap-1 text-accent font-medium hover:underline"
+                >
+                  <Pencil size={12} /> Edit Profile
+                </button>
+              )}
+              <button
+                onClick={() => setShowProfile(false)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-auto"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Biker Edit Profile Modal */}
+      <Dialog open={editOpen} onOpenChange={(o) => !o && setEditOpen(false)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Pencil size={16} /> Edit Profile</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <input
+              className="w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
+              placeholder="Full Name"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+            />
+            <input
+              className="w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
+              placeholder="Phone (11 digits)"
+              maxLength={11}
+              value={editPhone}
+              onChange={(e) => setEditPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+            />
+            <input
+              className="w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
+              placeholder="Bike Model / Plate"
+              value={editPlate}
+              onChange={(e) => setEditPlate(e.target.value)}
+            />
+            <button
+              disabled={editBusy}
+              onClick={async () => {
+                if (!editName.trim()) return toast({ title: "Name required", variant: "destructive" });
+                if (!isValidPhone(editPhone)) return toast({ title: PHONE_ERROR, variant: "destructive" });
+                setEditBusy(true);
+                const { error } = await supabase
+                  .from("bikers")
+                  .update({ full_name: editName.trim(), whatsapp_number: editPhone.trim(), plate_number: editPlate.trim() || null })
+                  .eq("user_id", user!.id);
+                setEditBusy(false);
+                if (error) return toast({ title: "Update failed", description: error.message, variant: "destructive" });
+                toast({ title: "Profile updated" });
+                setProfileInfo({ ...profileInfo, full_name: editName.trim(), phone: editPhone.trim(), plate_number: editPlate.trim() });
+                setEditOpen(false);
+              }}
+              className="w-full bg-accent text-accent-foreground font-semibold py-2.5 rounded-xl disabled:opacity-60"
+            >
+              {editBusy ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <main className="flex-1">{children}</main>
 

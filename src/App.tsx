@@ -17,6 +17,7 @@ import Auth from "./pages/Auth";
 import BikersLogin from "./pages/BikersLogin";
 import BikersSignup from "./pages/BikersSignup";
 import BikersDashboard from "./pages/BikersDashboard";
+import AdminSignup from "./pages/AdminSignup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/bikers-login" element={<BikersLogin />} />
               <Route path="/bikers-signup" element={<BikersSignup />} />
               <Route path="/bikers" element={<BikerRoute><BikersDashboard /></BikerRoute>} />
+              <Route path="/admin-signup" element={<AdminSignup />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

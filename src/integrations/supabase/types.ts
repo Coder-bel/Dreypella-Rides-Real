@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_invites: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          full_name: string
+          id: string
+          invite_code: string
+          invited_by: string | null
+          phone: string
+          status: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          full_name: string
+          id?: string
+          invite_code: string
+          invited_by?: string | null
+          phone: string
+          status?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          full_name?: string
+          id?: string
+          invite_code?: string
+          invited_by?: string | null
+          phone?: string
+          status?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
+      admins: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_super: boolean
+          phone: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          is_super?: boolean
+          phone: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_super?: boolean
+          phone?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bikers: {
         Row: {
           company_code: string | null
@@ -21,6 +93,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          is_active: boolean
           plate_number: string | null
           status: string
           user_id: string | null
@@ -32,6 +105,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean
           plate_number?: string | null
           status?: string
           user_id?: string | null
@@ -43,6 +117,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean
           plate_number?: string | null
           status?: string
           user_id?: string | null
@@ -88,6 +163,7 @@ export type Database = {
       }
       dispatches: {
         Row: {
+          assigned_biker_id: string | null
           biker_assigned: string | null
           biker_phone: string | null
           created_at: string
@@ -106,6 +182,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assigned_biker_id?: string | null
           biker_assigned?: string | null
           biker_phone?: string | null
           created_at?: string
@@ -124,6 +201,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          assigned_biker_id?: string | null
           biker_assigned?: string | null
           biker_phone?: string | null
           created_at?: string
@@ -140,6 +218,42 @@ export type Database = {
           status?: string
           tracking_id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      password_reset_otps: {
+        Row: {
+          attempts: number
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          identifier: string
+          otp_hash: string
+          role: string
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          identifier: string
+          otp_hash: string
+          role: string
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          identifier?: string
+          otp_hash?: string
+          role?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -265,7 +379,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_admin_invite: {
+        Args: {
+          _email: string
+          _full_name: string
+          _invite_code: string
+          _phone: string
+        }
+        Returns: Json
+      }
       claim_biker_code: { Args: { _company_code: string }; Returns: boolean }
+      claim_dispatch: { Args: { _dispatch_id: string }; Returns: Json }
       get_users_overview: {
         Args: never
         Returns: {
@@ -284,6 +408,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      mark_dispatch_delivered: {
+        Args: { _dispatch_id: string }
         Returns: boolean
       }
     }
