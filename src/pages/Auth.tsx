@@ -8,9 +8,11 @@ import {
   isValidPassword,
   PASSWORD_ERROR,
 } from "@/lib/constants";
+import ForgotPasswordDialog from "@/components/ForgotPasswordDialog";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showForgot, setShowForgot] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
