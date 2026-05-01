@@ -170,6 +170,12 @@ const Admin = () => {
               <TabsTrigger value="bikers" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
                 <Bike size={16} className="mr-1.5 sm:mr-2" /> Bikers
               </TabsTrigger>
+              <TabsTrigger value="bikers-overview" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
+                <Bike size={16} className="mr-1.5 sm:mr-2" /> Bikers Overview
+              </TabsTrigger>
+              <TabsTrigger value="admin-invites" className="data-[state=active]:bg-[#C8102E] data-[state=active]:text-white whitespace-nowrap">
+                <UserPlus size={16} className="mr-1.5 sm:mr-2" /> Onboard Admin
+              </TabsTrigger>
             </TabsList>
           </div>
 
