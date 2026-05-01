@@ -7,6 +7,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Bike, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { bikerCodeToEmail } from "@/lib/constants";
+import ForgotPasswordDialog from "@/components/ForgotPasswordDialog";
 
 const BikersLogin = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const BikersLogin = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
