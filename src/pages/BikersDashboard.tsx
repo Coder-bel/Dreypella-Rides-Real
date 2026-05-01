@@ -109,9 +109,10 @@ const BikersDashboard = () => {
     }
   };
 
+  // RLS already restricts visibility to: pending pool (unassigned) OR own assigned/completed.
   const pendingDispatches = dispatches.filter((d) => d.status === "pending_delivery");
-  const assignedDispatches = dispatches.filter((d) => d.status === "assigned" && d.biker_assigned === bikerIdentifier);
-  const completedDispatches = dispatches.filter((d) => d.status === "completed" && d.biker_assigned === bikerIdentifier);
+  const assignedDispatches = dispatches.filter((d) => d.status === "assigned");
+  const completedDispatches = dispatches.filter((d) => d.status === "completed");
 
   // Today's schedule: assigned + completed today
   const today = new Date().toDateString();
