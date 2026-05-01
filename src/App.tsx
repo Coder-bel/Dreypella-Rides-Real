@@ -17,6 +17,7 @@ import Auth from "./pages/Auth";
 import BikersLogin from "./pages/BikersLogin";
 import BikersSignup from "./pages/BikersSignup";
 import BikersDashboard from "./pages/BikersDashboard";
+import AdminSignup from "./pages/AdminSignup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
