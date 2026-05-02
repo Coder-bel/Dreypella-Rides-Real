@@ -136,13 +136,9 @@ const Auth = () => {
       </form>
 
       {isLogin && (
-        <div className="text-center text-xs mt-3 space-x-3">
+        <div className="text-center text-xs mt-3">
           <button onClick={() => setShowForgot("user")} className="text-accent hover:underline font-medium">
             Forgot Password?
-          </button>
-          <span className="text-muted-foreground">·</span>
-          <button onClick={() => setShowForgot("admin")} className="text-muted-foreground hover:text-accent hover:underline">
-            Admin reset
           </button>
         </div>
       )}
