@@ -1,9 +1,8 @@
 /**
- * Biker signup — NO email field, NO email verification.
- * The biker enters: Full Name, Phone, Company Code (DPR-XXXX), Password.
- * We derive a synthetic email from the company code so Supabase auth still works
- * (e.g. "dpr7821@bikers.dreypella.local"). Email confirmation is disabled.
- * After successful signup, the biker is signed in immediately and redirected to /bikers.
+ * Biker signup — Full Name, Phone, Email, Company Code (DPR-XXXX), Password.
+ * Uses the biker's REAL email for Supabase auth (so password reset & email-based
+ * recovery work). No email verification step — account is created and signed in
+ * immediately, then redirected to /bikers.
  */
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -14,13 +13,13 @@ import {
   PHONE_ERROR,
   isValidPassword,
   PASSWORD_ERROR,
-  bikerCodeToEmail,
 } from "@/lib/constants";
 
 const BikersSignup = () => {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [companyCode, setCompanyCode] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -32,6 +31,7 @@ const BikersSignup = () => {
 
     if (!fullName.trim()) return setError("Full Name is required");
     if (!isValidPhone(phone)) return setError(PHONE_ERROR);
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setError("Please enter a valid email address");
     const code = companyCode.trim().toUpperCase();
     if (!/^DPR-\d{4}$/.test(code))
       return setError("Invalid Company Code format. Expected: DPR-XXXX");
@@ -39,12 +39,10 @@ const BikersSignup = () => {
 
     setLoading(true);
 
-    // Synthetic email tied to the company code (never user-visible).
-    const syntheticEmail = bikerCodeToEmail(code);
+    const realEmail = email.trim().toLowerCase();
 
-    // Step 1: create the Supabase auth account.
     const { data: signupData, error: signupErr } = await supabase.auth.signUp({
-      email: syntheticEmail,
+      email: realEmail,
       password,
       options: {
         emailRedirectTo: window.location.origin + "/bikers",
@@ -54,19 +52,15 @@ const BikersSignup = () => {
 
     if (signupErr) {
       setLoading(false);
-      // If account already exists, surface a friendly message.
       if (signupErr.message.toLowerCase().includes("already")) {
-        return setError(
-          "An account already exists for this Company Code. Please sign in instead."
-        );
+        return setError("An account already exists for this email. Please sign in instead.");
       }
       return setError(signupErr.message);
     }
 
-    // Step 2: ensure we have an active session (auto-confirm is on, so this should work).
     if (!signupData.session) {
       const { error: signInErr } = await supabase.auth.signInWithPassword({
-        email: syntheticEmail,
+        email: realEmail,
         password,
       });
       if (signInErr) {
@@ -75,7 +69,7 @@ const BikersSignup = () => {
       }
     }
 
-    // Step 3: claim the company code via secure RPC (assigns 'biker' role + links biker row).
+    // Claim the company code (assigns 'biker' role + links biker row).
     const { data: claimed, error: claimErr } = await supabase.rpc(
       "claim_biker_code",
       { _company_code: code }
@@ -88,8 +82,20 @@ const BikersSignup = () => {
       );
     }
 
-    // Step 4: persist the biker email in localStorage so the dashboard can identify the rider.
-    localStorage.setItem("bikerEmail", syntheticEmail);
+    // Persist the real email on the biker row + name/phone (overwriting any pre-seeded synthetic email).
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (currentUser) {
+      await supabase
+        .from("bikers")
+        .update({
+          email: realEmail,
+          full_name: fullName.trim(),
+          whatsapp_number: phone.trim(),
+        })
+        .eq("user_id", currentUser.id);
+    }
+
+    localStorage.setItem("bikerEmail", realEmail);
 
     setLoading(false);
     navigate("/bikers");
@@ -121,7 +127,7 @@ const BikersSignup = () => {
             <Bike size={40} className="mx-auto text-accent mb-3" />
             <h1 className="font-display font-bold text-xl">Biker Signup</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Use the company code you received on WhatsApp
+              Use the company code you received from admin
             </p>
           </div>
 
@@ -157,6 +163,17 @@ const BikersSignup = () => {
                 className={inputClass}
                 placeholder="08012345678"
                 maxLength={11}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Email Address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className={inputClass}
+                placeholder="you@example.com"
               />
             </div>
             <div>

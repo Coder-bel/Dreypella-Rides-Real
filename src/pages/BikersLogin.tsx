@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Bike, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { bikerCodeToEmail } from "@/lib/constants";
 import ForgotPasswordDialog from "@/components/ForgotPasswordDialog";
 
 const BikersLogin = () => {
@@ -30,10 +29,20 @@ const BikersLogin = () => {
     }
 
     setLoading(true);
-    const syntheticEmail = bikerCodeToEmail(code);
+    // Look up the biker's registered email by company code (RPC bypasses RLS).
+    const { data: emailLookup, error: lookupErr } = await supabase.rpc(
+      "get_biker_login_email" as any,
+      { _company_code: code }
+    );
 
+    if (lookupErr || !emailLookup) {
+      setLoading(false);
+      return setError("Invalid Company Code or password.");
+    }
+
+    const loginEmail = String(emailLookup);
     const { error: signInErr } = await supabase.auth.signInWithPassword({
-      email: syntheticEmail,
+      email: loginEmail,
       password,
     });
 
@@ -43,7 +52,7 @@ const BikersLogin = () => {
       return setError("Invalid Company Code or password.");
     }
 
-    localStorage.setItem("bikerEmail", syntheticEmail);
+    localStorage.setItem("bikerEmail", loginEmail);
     navigate("/bikers");
   };
 

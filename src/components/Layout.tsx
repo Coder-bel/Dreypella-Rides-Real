@@ -192,6 +192,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <p><span className="text-muted-foreground">Email:</span> {user?.email}</p>
               ) : isBiker ? (
                 <>
+                  {profileInfo.email && <p className="break-all"><span className="text-muted-foreground">Email:</span> {profileInfo.email}</p>}
                   {profileInfo.phone && <p><span className="text-muted-foreground">Phone:</span> {profileInfo.phone}</p>}
                   {profileInfo.company_code && <p><span className="text-muted-foreground">Company Code:</span> <span className="font-mono font-bold text-accent">{profileInfo.company_code}</span></p>}
                   {profileInfo.plate_number && <p><span className="text-muted-foreground">Bike / Plate:</span> {profileInfo.plate_number}</p>}
