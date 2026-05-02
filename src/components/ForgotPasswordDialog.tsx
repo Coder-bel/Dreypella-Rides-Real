@@ -1,6 +1,9 @@
 /**
  * Shared Forgot Password modal supporting all three roles.
- * DEV MODE: OTP is returned by the edge function and shown on screen so flow is testable.
+ *  - user  → enters email
+ *  - biker → enters Company Code + email
+ *  - admin → enters email + phone (dual verification)
+ * DEV MODE: OTP is returned by the edge function and shown on screen.
  */
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -14,6 +17,8 @@ interface Props {
   onClose: () => void;
   role: Role;
 }
+
+const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 
 const ForgotPasswordDialog = ({ open, onClose, role }: Props) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -43,19 +48,21 @@ const ForgotPasswordDialog = ({ open, onClose, role }: Props) => {
 
   const sendOtp = async () => {
     setError("");
-    if (role === "user" && !isValidPhone(phone)) return setError("Phone must be exactly 11 digits");
+    if (role === "user") {
+      if (!EMAIL_REGEX.test(email.trim())) return setError("Enter a valid email address");
+    }
     if (role === "biker") {
       if (!/^DPR-\d{4}$/.test(companyCode.trim().toUpperCase())) return setError("Company code format: DPR-XXXX");
-      if (!isValidPhone(phone)) return setError("Phone must be exactly 11 digits");
+      if (!EMAIL_REGEX.test(email.trim())) return setError("Enter a valid email address");
     }
     if (role === "admin") {
-      if (!email.trim()) return setError("Email required");
+      if (!EMAIL_REGEX.test(email.trim())) return setError("Enter a valid email address");
       if (!isValidPhone(phone)) return setError("Phone must be exactly 11 digits");
     }
     setBusy(true);
     const body: any = { role };
-    if (role === "user") body.phone = phone.trim();
-    if (role === "biker") { body.company_code = companyCode.trim().toUpperCase(); body.phone = phone.trim(); }
+    if (role === "user") body.email = email.trim();
+    if (role === "biker") { body.company_code = companyCode.trim().toUpperCase(); body.email = email.trim(); }
     if (role === "admin") { body.email = email.trim(); body.phone = phone.trim(); }
 
     const { data, error: fnErr } = await supabase.functions.invoke("send-password-otp", { body });
@@ -63,9 +70,8 @@ const ForgotPasswordDialog = ({ open, onClose, role }: Props) => {
     if (fnErr || (data && data.error)) {
       return setError(data?.error || fnErr?.message || "Failed to send code");
     }
-    // Determine identifier used by verify endpoint
     let id = "";
-    if (role === "user") id = phone.trim();
+    if (role === "user") id = email.trim().toLowerCase();
     if (role === "biker") id = companyCode.trim().toUpperCase();
     if (role === "admin") id = email.trim();
     setIdentifier(id);
@@ -100,10 +106,10 @@ const ForgotPasswordDialog = ({ open, onClose, role }: Props) => {
           </DialogTitle>
           <DialogDescription>
             {step === 1 && (role === "admin"
-              ? "Enter your registered email and WhatsApp number. We'll verify both before sending a code."
+              ? "Enter your registered email and phone number. We'll verify both before sending a code."
               : role === "biker"
-              ? "Enter your Company Code and WhatsApp number to receive a reset code."
-              : "Enter your phone number to receive a reset code on WhatsApp.")}
+              ? "Enter your Company Code and registered email to receive a reset code."
+              : "Enter your registered email to receive a reset code.")}
             {step === 2 && "Enter the 6-digit code and choose a new strong password."}
             {step === 3 && "Password reset successfully — you can now log in."}
           </DialogDescription>
@@ -120,17 +126,19 @@ const ForgotPasswordDialog = ({ open, onClose, role }: Props) => {
             {role === "biker" && (
               <input className={inputCls + " font-mono uppercase"} placeholder="DPR-XXXX" value={companyCode} onChange={(e) => setCompanyCode(e.target.value.toUpperCase())} maxLength={8} />
             )}
-            {role === "admin" && (
-              <input className={inputCls} type="email" placeholder="admin@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            {(role === "user" || role === "biker" || role === "admin") && (
+              <input className={inputCls} type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
             )}
-            <input
-              className={inputCls}
-              type="tel"
-              placeholder="WhatsApp number (11 digits)"
-              value={phone}
-              maxLength={11}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
-            />
+            {role === "admin" && (
+              <input
+                className={inputCls}
+                type="tel"
+                placeholder="Phone (11 digits)"
+                value={phone}
+                maxLength={11}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+              />
+            )}
             <button
               disabled={busy}
               onClick={sendOtp}
@@ -147,7 +155,7 @@ const ForgotPasswordDialog = ({ open, onClose, role }: Props) => {
               <div className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-700 dark:text-yellow-400 text-xs p-3 rounded-lg">
                 <p className="font-semibold mb-1">DEV MODE — your OTP:</p>
                 <p className="font-mono text-lg tracking-widest">{devOtp}</p>
-                <p className="mt-1 opacity-75">In production this is sent only to WhatsApp{role === "admin" ? " and email" : ""}.</p>
+                <p className="mt-1 opacity-75">In production this is delivered to your email.</p>
               </div>
             )}
             <input
