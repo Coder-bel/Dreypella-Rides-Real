@@ -390,6 +390,10 @@ export type Database = {
       }
       claim_biker_code: { Args: { _company_code: string }; Returns: boolean }
       claim_dispatch: { Args: { _dispatch_id: string }; Returns: Json }
+      get_biker_login_email: {
+        Args: { _company_code: string }
+        Returns: string
+      }
       get_users_overview: {
         Args: never
         Returns: {
