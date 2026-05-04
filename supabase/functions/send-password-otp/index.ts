@@ -54,7 +54,20 @@ Deno.serve(async (req) => {
         .select("user_id, email, company_code")
         .eq("company_code", String(company_code).trim().toUpperCase())
         .maybeSingle();
-      if (!biker || (biker.email || "").toLowerCase() !== cleanEmail) {
+      if (!biker) {
+        return new Response(JSON.stringify({ error: "Company code not found" }), { status: 404, headers: corsHeaders });
+      }
+      let bikerEmail = (biker.email || "").toLowerCase();
+      // Fallback: if bikers.email is empty, look up auth user's email by user_id
+      if (!bikerEmail && biker.user_id) {
+        const { data: u } = await admin.auth.admin.getUserById(biker.user_id);
+        bikerEmail = (u?.user?.email || "").toLowerCase();
+        // Backfill for next time
+        if (bikerEmail) {
+          await admin.from("bikers").update({ email: bikerEmail }).eq("company_code", biker.company_code!);
+        }
+      }
+      if (bikerEmail !== cleanEmail) {
         return new Response(JSON.stringify({ error: "Company code and email do not match" }), { status: 404, headers: corsHeaders });
       }
       identifier = biker.company_code!;
