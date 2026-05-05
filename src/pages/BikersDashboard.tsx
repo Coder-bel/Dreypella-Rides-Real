@@ -47,7 +47,9 @@ const BikersDashboard = () => {
   };
 
   const fetchDispatches = async () => {
-    // RLS now restricts what each biker sees: pending pool + own assigned/completed
+    // Row Level Security: Only fetch data belonging to current user
+    // RLS restricts each biker to: pending pool (unassigned) + their own assigned/completed
+    // This prevents data leakage between bikers — they never see another biker's assignments
     const { data } = await supabase
       .from("dispatches")
       .select("*")
