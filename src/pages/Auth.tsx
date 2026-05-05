@@ -103,6 +103,16 @@ const Auth = () => {
           {success}
         </div>
       )}
+      {needsVerification && email.trim() && (
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={resending}
+          className="w-full text-sm text-accent font-medium hover:underline mb-4 disabled:opacity-60"
+        >
+          {resending ? "Resending..." : "Resend Verification Email"}
+        </button>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in-up-delay-2">
         {!isLogin && (
