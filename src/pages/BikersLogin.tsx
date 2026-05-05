@@ -16,9 +16,25 @@ const BikersLogin = () => {
   const [loading, setLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
 
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [info, setInfo] = useState("");
+
+  const handleResend = async (loginEmail: string) => {
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: loginEmail,
+      options: { emailRedirectTo: `${window.location.origin}/bikers-login` },
+    });
+    setResending(false);
+    if (error) setError(error.message);
+    else setInfo("Verification email resent! Check your inbox and spam folder.");
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError(""); setInfo(""); setNeedsVerification(false);
 
     const code = companyCode.trim().toUpperCase();
     if (!/^DPR-\d{4}$/.test(code)) {
@@ -29,7 +45,6 @@ const BikersLogin = () => {
     }
 
     setLoading(true);
-    // Look up the biker's registered email by company code (RPC bypasses RLS).
     const { data: emailLookup, error: lookupErr } = await supabase.rpc(
       "get_biker_login_email" as any,
       { _company_code: code }
@@ -46,12 +61,24 @@ const BikersLogin = () => {
       password,
     });
 
-    setLoading(false);
-
     if (signInErr) {
+      setLoading(false);
+      const msg = signInErr.message?.toLowerCase() || "";
+      if (msg.includes("confirm") || msg.includes("not confirmed") || msg.includes("verify")) {
+        setNeedsVerification(true);
+        return setError("Please verify your email address before logging in. Check your inbox for the verification link.");
+      }
       return setError("Invalid Company Code or password.");
     }
 
+    // Claim pending biker code on first verified sign-in (post email-verification flow)
+    const pending = localStorage.getItem("pendingBikerCode");
+    if (pending) {
+      const { data: claimed } = await supabase.rpc("claim_biker_code", { _company_code: pending });
+      if (claimed) localStorage.removeItem("pendingBikerCode");
+    }
+
+    setLoading(false);
     localStorage.setItem("bikerEmail", loginEmail);
     navigate("/bikers");
   };
