@@ -148,6 +148,21 @@ const BikersSignup = () => {
               <span>{error}</span>
             </div>
           )}
+          {success && (
+            <div className="bg-green-500/10 text-green-700 text-sm px-4 py-2 rounded-xl mb-3 animate-fade-in-up">
+              {success}
+            </div>
+          )}
+          {success && (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resending}
+              className="w-full text-sm text-accent font-medium hover:underline mb-4 disabled:opacity-60"
+            >
+              {resending ? "Resending..." : "Resend Verification Email"}
+            </button>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
