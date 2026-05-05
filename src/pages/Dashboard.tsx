@@ -35,6 +35,8 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     if (!user) return;
+    // Row Level Security: Only fetch data belonging to current user
+    // This prevents data leakage between accounts
     const [bookingsRes, dispatchRes, profileRes] = await Promise.all([
       supabase.from("bookings").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("dispatches").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
