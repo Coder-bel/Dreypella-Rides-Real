@@ -23,11 +23,27 @@ const BikersSignup = () => {
   const [companyCode, setCompanyCode] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+
+  const handleResend = async () => {
+    if (!email.trim()) return;
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim().toLowerCase(),
+      options: { emailRedirectTo: `${window.location.origin}/bikers-login` },
+    });
+    setResending(false);
+    if (error) setError(error.message);
+    else setSuccess("Verification email resent! Check your inbox and spam folder.");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (!fullName.trim()) return setError("Full Name is required");
     if (!isValidPhone(phone)) return setError(PHONE_ERROR);
@@ -45,7 +61,7 @@ const BikersSignup = () => {
       email: realEmail,
       password,
       options: {
-        emailRedirectTo: window.location.origin + "/bikers",
+        emailRedirectTo: `${window.location.origin}/bikers-login`,
         data: { full_name: fullName.trim(), phone: phone.trim() },
       },
     });
@@ -58,47 +74,42 @@ const BikersSignup = () => {
       return setError(signupErr.message);
     }
 
-    if (!signupData.session) {
-      const { error: signInErr } = await supabase.auth.signInWithPassword({
-        email: realEmail,
-        password,
-      });
-      if (signInErr) {
-        setLoading(false);
-        return setError("Account created, but sign-in failed. Please try logging in.");
-      }
-    }
-
-    // Claim the company code (assigns 'biker' role + links biker row).
-    const { data: claimed, error: claimErr } = await supabase.rpc(
-      "claim_biker_code",
-      { _company_code: code }
-    );
-
-    if (claimErr || !claimed) {
-      setLoading(false);
-      return setError(
-        "Invalid or already-used Company Code. Contact support if you believe this is an error."
+    // If we already have a session (auto-confirm enabled), claim the code now.
+    if (signupData.session) {
+      const { data: claimed, error: claimErr } = await supabase.rpc(
+        "claim_biker_code",
+        { _company_code: code }
       );
+      if (claimErr || !claimed) {
+        setLoading(false);
+        return setError(
+          "Invalid or already-used Company Code. Contact support if you believe this is an error."
+        );
+      }
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) {
+        await supabase
+          .from("bikers")
+          .update({
+            email: realEmail,
+            full_name: fullName.trim(),
+            whatsapp_number: phone.trim(),
+          })
+          .eq("user_id", currentUser.id);
+      }
+      localStorage.setItem("bikerEmail", realEmail);
+      setLoading(false);
+      navigate("/bikers");
+      return;
     }
 
-    // Persist the real email on the biker row + name/phone (overwriting any pre-seeded synthetic email).
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (currentUser) {
-      await supabase
-        .from("bikers")
-        .update({
-          email: realEmail,
-          full_name: fullName.trim(),
-          whatsapp_number: phone.trim(),
-        })
-        .eq("user_id", currentUser.id);
-    }
-
-    localStorage.setItem("bikerEmail", realEmail);
-
+    // Email verification required — temporarily store the company code so we can
+    // claim it after the biker verifies their email and signs in.
+    localStorage.setItem("pendingBikerCode", code);
     setLoading(false);
-    navigate("/bikers");
+    setSuccess(
+      "Registration successful! Please check your email inbox and click the verification link to activate your account. Didn't receive the email? Check your spam folder."
+    );
   };
 
   const inputClass =
