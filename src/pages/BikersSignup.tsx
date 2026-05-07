@@ -33,14 +33,15 @@ const BikersSignup = () => {
 
     if (!fullName.trim()) return setError("Full Name is required");
     if (!isValidPhone(phone)) return setError(PHONE_ERROR);
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setError("Please enter a valid email address");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+      return setError("Please enter a valid email address");
+
     const code = companyCode.trim().toUpperCase();
     if (!/^DPR-\d{4}$/.test(code))
       return setError("Invalid Company Code format. Expected: DPR-XXXX");
     if (!isValidPassword(password)) return setError(PASSWORD_ERROR);
 
     setLoading(true);
-
     const realEmail = email.trim().toLowerCase();
 
     const { data: signupData, error: signupErr } = await supabase.auth.signUp({
@@ -53,10 +54,16 @@ const BikersSignup = () => {
 
     if (signupErr) {
       setLoading(false);
-      if (signupErr.message.toLowerCase().includes("already")) {
+      const message = signupErr.message || "Signup failed.";
+      if (message.toLowerCase().includes("already")) {
         return setError("An account already exists for this email. Please sign in instead.");
       }
-      return setError(signupErr.message);
+      if (message.toLowerCase().includes("rate limit")) {
+        return setError(
+          "Too many signup attempts for this email. Please wait 24 hours and try again, or sign in if the account already exists."
+        );
+      }
+      return setError(message);
     }
 
     if (signupData.session) {
@@ -64,12 +71,14 @@ const BikersSignup = () => {
         "claim_biker_code",
         { _company_code: code }
       );
+
       if (claimErr || !claimed) {
         setLoading(false);
         return setError(
           "Invalid or already-used Company Code. Contact support if you believe this is an error."
         );
       }
+
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
         await supabase
@@ -81,6 +90,7 @@ const BikersSignup = () => {
           })
           .eq("user_id", currentUser.id);
       }
+
       setLoading(false);
       navigate("/bikers");
       return;
@@ -96,6 +106,7 @@ const BikersSignup = () => {
         "claim_biker_code",
         { _company_code: code }
       );
+
       if (claimErr || !claimed) {
         setLoading(false);
         return setError(
@@ -103,6 +114,17 @@ const BikersSignup = () => {
         );
       }
 
+      setLoading(false);
+      navigate("/bikers");
+      return;
+    }
+
+    setLoading(false);
+    return setError("Signup completed, but automatic sign-in failed. Please sign in manually.");
+  };
+
+  const inputClass =
+    "w-full rounded-xl border bg-background px-3 py-3 text-base focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -203,11 +225,10 @@ const BikersSignup = () => {
               />
               <p className="text-[11px] text-muted-foreground mt-1">{PASSWORD_ERROR}</p>
             </div>
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-accent hover:bg-red-brand-light text-accent-foreground font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] disabled:opacity-60"
+              className="w-full bg-accent text-accent-foreground font-semibold py-3 rounded-xl disabled:opacity-60 hover:scale-105 transition-transform"
             >
               {loading ? "Creating account..." : "Sign Up as Biker"}
             </button>

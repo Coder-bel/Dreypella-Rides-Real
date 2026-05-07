@@ -1,9 +1,11 @@
 /**
  * Hidden /admin-signup — only reachable by direct URL.
- * Requires ADPR-XXXX invite code, then signs up via Supabase Auth and claims invite.
+ * First admin can sign up without an invite code.
+ * Additional admins may use an ADPR-XXXX invite code.
+ * Uses a backend function to create confirmed admin accounts and sign in automatically.
  */
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ShieldCheck, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isValidPhone, isValidPassword, PASSWORD_ERROR } from "@/lib/constants";
@@ -16,59 +18,69 @@ const AdminSignup = () => {
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setInfo("");
     if (!fullName.trim()) return setError("Full name is required");
     if (!email.trim()) return setError("Email is required");
     if (!isValidPhone(phone)) return setError("Phone must be exactly 11 digits");
-    if (!/^ADPR-\d{4}$/.test(code.trim().toUpperCase())) return setError("Invalid invite code format (ADPR-XXXX)");
+    if (code.trim() && !/^ADPR-\d{4}$/.test(code.trim().toUpperCase())) return setError("Invalid invite code format (ADPR-XXXX)");
     if (!isValidPassword(password)) return setError(PASSWORD_ERROR);
 
     setBusy(true);
 
-    const { data: signUp, error: suErr } = await supabase.auth.signUp({
-      email: email.trim(),
+    const normalizedEmail = email.trim().toLowerCase();
+    const payload = {
+      full_name: fullName.trim(),
+      email: normalizedEmail,
+      phone: phone.trim(),
       password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { full_name: fullName.trim(), phone: phone.trim() },
-      },
-    });
-    if (suErr || !signUp.user) {
-      setBusy(false);
-      return setError(suErr?.message || "Signup failed");
-    }
+      invite_code: code.trim().toUpperCase(),
+    };
 
-    // If email confirmation is required there is no session yet — sign in to get one
-    if (!signUp.session) {
-      const { error: siErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-      if (siErr) {
+    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-signup`;
+    let result: any;
+    try {
+      const response = await fetch(functionUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
         setBusy(false);
-        return setError("Account created but auto sign-in failed. Try logging in.");
+        return setError(
+          `Admin signup failed: ${response.status} ${response.statusText} - ${text}`,
+        );
       }
+
+      result = await response.json();
+    } catch (invokeError: any) {
+      setBusy(false);
+      return setError(
+        `Failed to send a request to the Edge Function: ${invokeError?.message || invokeError}. ` +
+          "Make sure your Supabase Functions are deployed or running locally, and that VITE_SUPABASE_URL is configured correctly."
+      );
     }
 
-    const { data: claim, error: claimErr } = await supabase.rpc("claim_admin_invite" as any, {
-      _invite_code: code.trim().toUpperCase(),
-      _full_name: fullName.trim(),
-      _email: email.trim(),
-      _phone: phone.trim(),
-    });
+    if (!result.success) {
+      setBusy(false);
+      return setError(result.error || "Admin signup failed.");
+    }
 
-    setBusy(false);
-    if (claimErr) return setError(claimErr.message);
-    const res: any = claim;
-    if (!res?.success) {
-      const map: Record<string, string> = {
-        invalid_code: "Invalid invite code.",
-        expired_or_used: "Invalid or expired invite code. Please contact the main admin.",
-        email_mismatch: "Email does not match the invite.",
-        not_authenticated: "Not signed in.",
-      };
-      return setError(map[res?.error] || "Could not redeem invite.");
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+    if (signInErr) {
+      setBusy(false);
+      return setError(signInErr.message || "Account created, but automatic sign-in failed. Please sign in manually.");
     }
 
     navigate("/admin");
@@ -91,10 +103,18 @@ const AdminSignup = () => {
             <ShieldCheck size={36} className="mx-auto text-accent mb-2" />
             <h1 className="font-display font-bold text-xl">Admin Signup</h1>
             <p className="text-xs text-muted-foreground mt-1">Use the invite code shared by an existing admin.</p>
+            <p className="text-xs text-muted-foreground mt-3">
+              Already signed up? <Link to="/auth" className="font-semibold text-accent hover:underline">Sign in</Link> instead.
+            </p>
           </div>
           {error && (
             <div className="bg-destructive/10 text-destructive text-sm px-3 py-2 rounded-lg mb-3 flex items-start gap-2 animate-shake">
               <AlertCircle size={14} className="shrink-0 mt-0.5" /> <span>{error}</span>
+            </div>
+          )}
+          {info && (
+            <div className="bg-emerald-100 text-emerald-900 text-sm px-3 py-2 rounded-lg mb-3 border border-emerald-200">
+              {info}
             </div>
           )}
           <form onSubmit={submit} className="space-y-3">
@@ -102,6 +122,7 @@ const AdminSignup = () => {
             <input className={inputCls} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
             <input className={inputCls} type="tel" placeholder="Phone (11 digits)" maxLength={11} value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))} />
             <input className={inputCls + " font-mono uppercase"} placeholder="ADPR-XXXX" maxLength={9} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
+            <p className="text-[11px] text-muted-foreground">If this is the first admin account, you can leave the invite code blank.</p>
             <input className={inputCls} type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
             <p className="text-[11px] text-muted-foreground">{PASSWORD_ERROR}</p>
             <button disabled={busy} className="w-full bg-accent text-accent-foreground font-semibold py-3 rounded-xl disabled:opacity-60">

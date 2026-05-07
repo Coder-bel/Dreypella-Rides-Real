@@ -1,4 +1,7 @@
-project_id = "fwdsvtunkqswiqlvkzin"
+project_id = "dmstjwtvlooglbdjjuxs"
+
+[functions.admin-signup]
+verify_jwt = false
 
 [functions.create-dva]
 verify_jwt = false
