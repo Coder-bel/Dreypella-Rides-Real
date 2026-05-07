@@ -261,6 +261,7 @@ export type Database = {
         Row: {
           created_at: string
           dva_details: Json | null
+          email: string | null
           full_name: string | null
           id: string
           matric_number: string | null
@@ -272,6 +273,7 @@ export type Database = {
         Insert: {
           created_at?: string
           dva_details?: Json | null
+          email?: string | null
           full_name?: string | null
           id?: string
           matric_number?: string | null
@@ -283,6 +285,7 @@ export type Database = {
         Update: {
           created_at?: string
           dva_details?: Json | null
+          email?: string | null
           full_name?: string | null
           id?: string
           matric_number?: string | null

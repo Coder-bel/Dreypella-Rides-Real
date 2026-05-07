@@ -41,14 +41,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const isBiker = role === "biker";
   const isAdmin = role === "admin";
-  const bikerEmail = localStorage.getItem("bikerEmail") || "";
 
   // Fetch role-specific profile when dropdown is opened
   useEffect(() => {
     if (!showProfile) return;
     const load = async () => {
       if (isBiker && user) {
-        // Supabase biker — read from bikers table
         const { data } = await supabase
           .from("bikers")
           .select("full_name, whatsapp_number, company_code, plate_number, email")
@@ -63,9 +61,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             plate_number: data.plate_number,
           });
         }
-      } else if (isBiker && !user) {
-        // Legacy localStorage biker
-        setProfileInfo({ email: bikerEmail, full_name: "Rider" });
       } else if (user) {
         const { data } = await supabase
           .from("profiles")
@@ -80,18 +75,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       }
     };
     load();
-  }, [showProfile, user, isBiker, bikerEmail]);
+  }, [showProfile, user, isBiker]);
 
   const handleLogout = async () => {
-    if (isBiker) {
-      localStorage.removeItem("isBiker");
-      localStorage.removeItem("bikerExpiry");
-      localStorage.removeItem("bikerEmail");
-      navigate("/bikers-login");
-    } else {
-      await signOut();
-      navigate("/");
-    }
+    await signOut();
+    navigate(isBiker ? "/bikers-login" : "/");
   };
 
   // Clean navbar title — no role suffix

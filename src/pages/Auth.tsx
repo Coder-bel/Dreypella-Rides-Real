@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { LogIn, UserPlus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   isValidPhone,
   PHONE_ERROR,
@@ -18,33 +17,16 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [needsVerification, setNeedsVerification] = useState(false);
-  const [resending, setResending] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
-
-  const handleResend = async () => {
-    if (!email.trim()) return;
-    setResending(true);
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth` },
-    });
-    setResending(false);
-    if (error) setError(error.message);
-    else setSuccess("Verification email resent! Check your inbox and spam folder.");
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    setNeedsVerification(false);
 
     if (!isLogin) {
       if (!fullName.trim()) return setError("Full Name is required");
@@ -57,26 +39,21 @@ const Auth = () => {
     if (isLogin) {
       const { error } = await signIn(email, password);
       if (error) {
-        const msg = error.message?.toLowerCase() || "";
-        if (msg.includes("confirm") || msg.includes("not confirmed") || msg.includes("verify")) {
-          setError("Please verify your email address before logging in. Check your inbox for the verification link.");
-          setNeedsVerification(true);
-        } else {
-          setError(error.message);
-        }
+        setError(error.message || "Sign in failed. Please try again.");
       } else {
         navigate("/dashboard");
       }
     } else {
-      const { error } = await signUp(email, password, {
+      const { data, error } = await signUp(email, password, {
         full_name: fullName,
         phone,
       });
       if (error) {
-        setError(error.message);
+        setError(error.message || String(error));
+      } else if (data?.session) {
+        navigate("/dashboard");
       } else {
-        setSuccess("Registration successful! Please check your email inbox and click the verification link to activate your account. Didn't receive the email? Check your spam folder.");
-        setNeedsVerification(true);
+        setSuccess("Registration successful! You can now sign in with your email and password.");
       }
     }
     setLoading(false);
@@ -84,6 +61,7 @@ const Auth = () => {
 
   const inputClass = "w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all";
 
+  // Normal Login/Signup Screen
   return (
     <div className="container px-4 py-8 max-w-md mx-auto">
       <h1 className="font-display font-bold text-xl mb-1 animate-fade-in-up text-center">
@@ -102,16 +80,6 @@ const Auth = () => {
         <div className="bg-green-500/10 text-green-600 text-sm px-4 py-2 rounded-xl mb-4 animate-fade-in-up">
           {success}
         </div>
-      )}
-      {needsVerification && email.trim() && (
-        <button
-          type="button"
-          onClick={handleResend}
-          disabled={resending}
-          className="w-full text-sm text-accent font-medium hover:underline mb-4 disabled:opacity-60"
-        >
-          {resending ? "Resending..." : "Resend Verification Email"}
-        </button>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in-up-delay-2">

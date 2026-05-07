@@ -1,7 +1,7 @@
 /**
  * Strict role-based access control implemented.
- * Biker-only route. Accepts either Supabase 'biker' role OR legacy localStorage session.
- * Redirects admins to /admin, regular users to /dashboard, others to /bikers-login.
+ * Biker-only route. Accepts only Supabase 'biker' role.
+ * Redirects admins to /admin, regular users to /dashboard, guests to /bikers-login.
  */
 import { Navigate } from "react-router-dom";
 import { useEffect } from "react";

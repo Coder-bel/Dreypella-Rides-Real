@@ -25,20 +25,6 @@ const BikersSignup = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
-
-  const handleResend = async () => {
-    if (!email.trim()) return;
-    setResending(true);
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email: email.trim().toLowerCase(),
-      options: { emailRedirectTo: `${window.location.origin}/bikers-login` },
-    });
-    setResending(false);
-    if (error) setError(error.message);
-    else setSuccess("Verification email resent! Check your inbox and spam folder.");
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +47,6 @@ const BikersSignup = () => {
       email: realEmail,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/bikers-login`,
         data: { full_name: fullName.trim(), phone: phone.trim() },
       },
     });
@@ -74,7 +59,6 @@ const BikersSignup = () => {
       return setError(signupErr.message);
     }
 
-    // If we already have a session (auto-confirm enabled), claim the code now.
     if (signupData.session) {
       const { data: claimed, error: claimErr } = await supabase.rpc(
         "claim_biker_code",
@@ -97,23 +81,28 @@ const BikersSignup = () => {
           })
           .eq("user_id", currentUser.id);
       }
-      localStorage.setItem("bikerEmail", realEmail);
       setLoading(false);
       navigate("/bikers");
       return;
     }
 
-    // Email verification required — temporarily store the company code so we can
-    // claim it after the biker verifies their email and signs in.
-    localStorage.setItem("pendingBikerCode", code);
-    setLoading(false);
-    setSuccess(
-      "Registration successful! Please check your email inbox and click the verification link to activate your account. Didn't receive the email? Check your spam folder."
-    );
-  };
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email: realEmail,
+      password,
+    });
 
-  const inputClass =
-    "w-full rounded-xl border bg-background px-3 py-3 text-base focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all";
+    if (!signInErr) {
+      const { data: claimed, error: claimErr } = await supabase.rpc(
+        "claim_biker_code",
+        { _company_code: code }
+      );
+      if (claimErr || !claimed) {
+        setLoading(false);
+        return setError(
+          "Invalid or already-used Company Code. Contact support if you believe this is an error."
+        );
+      }
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -153,17 +142,6 @@ const BikersSignup = () => {
               {success}
             </div>
           )}
-          {success && (
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={resending}
-              className="w-full text-sm text-accent font-medium hover:underline mb-4 disabled:opacity-60"
-            >
-              {resending ? "Resending..." : "Resend Verification Email"}
-            </button>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label className="block text-sm font-medium mb-1.5">Full Name</label>

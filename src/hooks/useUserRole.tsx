@@ -1,7 +1,7 @@
 /**
  * Strict role-based access control implemented.
  * Determines the current user's role: 'admin', 'biker', or 'user'.
- * Biker role is detected via Supabase user_roles table (preferred) OR legacy localStorage flow.
+ * Biker role is detected via Supabase user_roles table.
  */
 import { useEffect, useState } from "react";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -41,13 +41,6 @@ export const useUserRole = (): { role: UserRole; loading: boolean } => {
     return () => { cancelled = true; };
   }, [user, authLoading]);
 
-  // Legacy localStorage biker (kept for the existing whitelisted login flow)
-  const legacyBiker = localStorage.getItem("isBiker") === "true";
-  const bikerExpiry = localStorage.getItem("bikerExpiry");
-  const legacyBikerValid =
-    legacyBiker && bikerExpiry && Date.now() <= Number(bikerExpiry);
-
-  if (legacyBikerValid) return { role: "biker", loading: false };
   if (authLoading || adminLoading || (user && !bikerChecked)) {
     return { role: "guest", loading: true };
   }

@@ -25,25 +25,18 @@ const BikersDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [biker, setBiker] = useState<BikerProfile | null>(null);
 
-  const legacyEmail = localStorage.getItem("bikerEmail") || "";
-  const bikerIdentifier = biker?.email || legacyEmail;
-
   const fetchBiker = async () => {
-    if (user) {
-      const { data } = await supabase
-        .from("bikers")
-        .select("full_name, whatsapp_number, company_code, email")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (data) setBiker(data);
-    } else if (legacyEmail) {
-      const { data } = await supabase
-        .from("bikers")
-        .select("full_name, whatsapp_number, company_code, email")
-        .eq("email", legacyEmail)
-        .maybeSingle();
-      if (data) setBiker(data);
+    if (!user) {
+      setBiker(null);
+      return;
     }
+
+    const { data } = await supabase
+      .from("bikers")
+      .select("full_name, whatsapp_number, company_code, email")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (data) setBiker(data);
   };
 
   const fetchDispatches = async () => {

@@ -1,7 +1,7 @@
 /**
  * Strict role-based access control implemented.
  * Admin-only "Onboard Biker" form. Generates a unique DPR-XXXX code, saves the
- * pending row, and opens WhatsApp pre-filled with the welcome message.
+ * pending row, and provides manual share options for the new biker.
  */
 import { useState, useEffect } from "react";
 import { Bike, Copy, CheckCircle, MessageCircle, RefreshCw } from "lucide-react";
