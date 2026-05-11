@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import { Bus, Package, ArrowRight, MapPin, LogIn, Truck, Shield } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAuth } from "@/hooks/useAuth";
-import heroBg from "@/assets/hero-bg.jpg";
 
 const cities = ["Lagos", "Ibadan", "Ogbomoso", "Iseyin", "Oyo"];
 
@@ -18,7 +17,7 @@ const Index = () => {
       <section className="relative w-full overflow-hidden">
         <div
           className="relative w-full min-h-[320px] sm:min-h-[420px] lg:min-h-[500px] bg-cover bg-center flex items-center justify-center"
-          style={{ backgroundImage: `url(${heroBg})` }}
+          style={{ backgroundImage: `url('https://images.pexels.com/photos/257636/pexels-photo-257636.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1')` }}
         >
           {/* Dark overlay */}
           <div className="absolute inset-0 bg-[hsl(210,100%,12%)]/75 dark:bg-[hsl(210,60%,6%)]/85" />
