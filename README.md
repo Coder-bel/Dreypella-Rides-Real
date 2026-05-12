@@ -1,111 +1,73 @@
-# 🚗 Dreypella Rides
+# Welcome to your Lovable project
 
-A modern transportation and logistics platform that allows users to book rides for travel and send packages with ease. Built with TypeScript and Supabase, Dreypella Rides delivers a fast, reliable, and scalable experience for the general public.
+## Project info
 
----
+**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
-## ✨ Features
+## How can I edit this code?
 
-- 🚕 **Ride Booking** — Book rides for travel quickly and conveniently
-- 📦 **Package Delivery** — Send and track packages with ease
-- 🔐 **Secure Authentication** — Powered by Supabase Auth
-- ⚡ **Real-time Updates** — Live ride and delivery status tracking
-- 📱 **Responsive Design** — Works seamlessly on all devices
+There are several ways of editing your application.
 
----
+**Use Lovable**
 
-## 🛠️ Tech Stack
+Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
 
-| Technology | Purpose |
-|------------|---------|
-| TypeScript | Primary programming language |
-| Supabase | Backend, database & authentication |
+Changes made via Lovable will be committed automatically to this repo.
 
----
+**Use your preferred IDE**
 
-## 🚀 Getting Started
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-### Prerequisites
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Make sure you have the following installed:
+Follow these steps:
 
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-- A [Supabase](https://supabase.com/) account
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-### Installation
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Coder-bel/Dreypella-Rides-Real.git
-   cd Dreypella-Rides-Real
-   ```
+# Step 3: Install the necessary dependencies.
+npm i
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables:**
-
-   Create a `.env` file in the root directory and add the following:
-   ```env
-   SUPABASE_URL=your_supabase_project_url
-   SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-   > ⚠️ Never commit your `.env` file. It is already included in `.gitignore`.
-
-4. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-
----
-
-## 📁 Project Structure
-
-```
-Dreypella-Rides-Real/
-├── src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/          # Application pages
-│   ├── lib/            # Supabase client & utilities
-│   └── types/          # TypeScript type definitions
-├── public/             # Static assets
-├── .env                # Environment variables (not committed)
-├── .gitignore
-└── README.md
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
 ```
 
----
+**Edit a file directly in GitHub**
 
-## 🔑 Environment Variables
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-| Variable | Description |
-|----------|-------------|
-| `SUPABASE_URL` | Your Supabase project URL |
-| `SUPABASE_ANON_KEY` | Your Supabase anonymous/public key |
+**Use GitHub Codespaces**
 
----
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-## 🤝 Contributing
+## What technologies are used for this project?
 
-Contributions are welcome! Here's how to get started:
+This project is built with:
 
-1. Fork the repository
-2. Create a new branch: `git checkout -b feature/your-feature-name`
-3. Make your changes and commit: `git commit -m "add your feature"`
-4. Push to your branch: `git push origin feature/your-feature-name`
-5. Open a Pull Request
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
----
+## How can I deploy this project?
 
-## 📄 License
+Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
 
-This project is licensed under the [MIT License](LICENSE).
+## Can I connect a custom domain to my Lovable project?
 
----
+Yes, you can!
 
-## 📬 Contact
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-Made with ❤️ by [Coder-bel](https://github.com/Coder-bel)
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
