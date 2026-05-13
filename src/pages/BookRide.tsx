@@ -3,7 +3,7 @@
  * Trip schedules, pickup points, and pricing are loaded dynamically from the trips table.
  */
 import { useState, useEffect } from "react";
-import { Bus, CheckCircle, MessageCircle } from "lucide-react";
+import { Bus, CircleCheck as CheckCircle, MessageCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import PaymentModal from "@/components/PaymentModal";

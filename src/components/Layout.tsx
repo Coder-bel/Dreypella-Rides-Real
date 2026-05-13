@@ -4,7 +4,7 @@
  */
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bus, Package, Home, User, Moon, Sun, LogIn, LogOut, MessageCircle, Shield, Bike, Pencil } from "lucide-react";
+import { Bus, Package, Chrome as Home, User, Moon, Sun, LogIn, LogOut, MessageCircle, Shield, Bike, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";

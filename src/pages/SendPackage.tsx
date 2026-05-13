@@ -5,7 +5,7 @@
  * Large Package: +₦500
  */
 import { useState } from "react";
-import { Package, CheckCircle, MessageCircle, Clock, Calculator } from "lucide-react";
+import { Package, CircleCheck as CheckCircle, MessageCircle, Clock, Calculator } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";

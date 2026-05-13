@@ -4,7 +4,7 @@
  * Invoice / Boarding Pass shown for confirmed bookings.
  */
 import { useState, useEffect, useRef } from "react";
-import { Bus, Package, Clock, LogOut, X, MessageCircle, Printer, CheckCircle2, Ticket } from "lucide-react";
+import { Bus, Package, Clock, LogOut, X, MessageCircle, Printer, CircleCheck as CheckCircle2, Ticket } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
