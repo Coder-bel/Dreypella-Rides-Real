@@ -12,16 +12,24 @@ import SupportWhatsApp from "@/components/SupportWhatsApp";
 import { SUPPORT_WHATSAPP } from "@/lib/constants";
 
 const friendlyStatus: Record<string, { label: string; color: string }> = {
-  pending_payment: { label: "Awaiting payment confirmation", color: "bg-yellow-500/10 text-yellow-600" },
-  confirmed: { label: "Payment Confirmed – Ready for Boarding", color: "bg-green-500/10 text-green-600" },
-  completed: { label: "Trip completed – thank you!", color: "bg-blue-500/10 text-blue-600" },
-  cancelled: { label: "Booking cancelled", color: "bg-red-500/10 text-red-500" },
+  "Pending Payment": { label: "Awaiting payment confirmation", color: "bg-yellow-500/10 text-yellow-600" },
+  "Pending": { label: "Awaiting payment confirmation", color: "bg-yellow-500/10 text-yellow-600" },
+  "Confirmed": { label: "Payment Confirmed – Ready for Boarding", color: "bg-green-500/10 text-green-600" },
+  "Completed": { label: "Trip completed – thank you!", color: "bg-blue-500/10 text-blue-600" },
+  "Cancelled": { label: "Booking cancelled", color: "bg-red-500/10 text-red-500" },
+  "pending_payment": { label: "Awaiting payment confirmation", color: "bg-yellow-500/10 text-yellow-600" },
+  "confirmed": { label: "Payment Confirmed – Ready for Boarding", color: "bg-green-500/10 text-green-600" },
+  "completed": { label: "Trip completed – thank you!", color: "bg-blue-500/10 text-blue-600" },
+  "cancelled": { label: "Booking cancelled", color: "bg-red-500/10 text-red-500" },
 };
 
 const dispatchStatusLabel: Record<string, { label: string; color: string }> = {
-  pending_delivery: { label: "Pending Delivery & Payment", color: "bg-yellow-500/10 text-yellow-600" },
-  assigned: { label: "Rider assigned – on the way!", color: "bg-blue-500/10 text-blue-600" },
-  completed: { label: "Package delivered successfully – thank you!", color: "bg-green-500/10 text-green-600" },
+  "Pending Delivery & Payment": { label: "Pending Delivery & Payment", color: "bg-yellow-500/10 text-yellow-600" },
+  "Assigned": { label: "Rider assigned – on the way!", color: "bg-blue-500/10 text-blue-600" },
+  "Completed": { label: "Package delivered successfully – thank you!", color: "bg-green-500/10 text-green-600" },
+  "pending_delivery": { label: "Pending Delivery & Payment", color: "bg-yellow-500/10 text-yellow-600" },
+  "assigned": { label: "Rider assigned – on the way!", color: "bg-blue-500/10 text-blue-600" },
+  "completed": { label: "Package delivered successfully – thank you!", color: "bg-green-500/10 text-green-600" },
 };
 
 const Dashboard = () => {
@@ -30,7 +38,7 @@ const Dashboard = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [dispatches, setDispatches] = useState<any[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
-  const [profile, setProfile] = useState<{ full_name: string | null; phone: string | null } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string | null; phone_number: string | null } | null>(null);
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   const fetchData = async () => {
@@ -40,7 +48,7 @@ const Dashboard = () => {
     const [bookingsRes, dispatchRes, profileRes] = await Promise.all([
       supabase.from("bookings").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("dispatches").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
-      supabase.from("profiles").select("full_name, phone").eq("user_id", user.id).maybeSingle(),
+      supabase.from("profiles").select("full_name, phone_number").eq("id", user.id).maybeSingle(),
     ]);
     if (bookingsRes.data) setBookings(bookingsRes.data);
     if (dispatchRes.data) setDispatches(dispatchRes.data);
@@ -104,7 +112,7 @@ const Dashboard = () => {
   ];
 
   // Check if selected booking is confirmed (show invoice)
-  const showInvoice = selectedBooking && selectedBooking.status === "confirmed";
+  const showInvoice = selectedBooking && (selectedBooking.status === "Confirmed" || selectedBooking.status === "confirmed");
 
   return (
     <div className="container px-4 py-6 max-w-lg mx-auto">
@@ -149,7 +157,7 @@ const Dashboard = () => {
                       <p className="text-xs text-muted-foreground">{b.travel_date} • {b.pickup}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      {b.status === "confirmed" ? (
+                      {(b.status === "Confirmed" || b.status === "confirmed") ? (
                         <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 font-semibold">
                           <CheckCircle2 size={12} /> Confirmed
                         </span>
@@ -161,7 +169,7 @@ const Dashboard = () => {
                       <p className="text-xs text-muted-foreground mt-1">{daysLeft > 0 ? `${daysLeft}d left` : "Today"}</p>
                     </div>
                   </div>
-                  {b.status === "confirmed" && (
+                  {(b.status === "Confirmed" || b.status === "confirmed") && (
                     <div className="mt-2 flex items-center gap-1.5 text-xs text-green-600 font-medium">
                       <Ticket size={14} /> Tap to view Boarding Pass
                     </div>
@@ -186,7 +194,7 @@ const Dashboard = () => {
                     <p className="text-xs text-muted-foreground">{b.travel_date} • {b.pickup}</p>
                   </div>
                   <div className="shrink-0">
-                    {b.status === "confirmed" ? (
+                    {(b.status === "Confirmed" || b.status === "confirmed") ? (
                       <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 font-semibold">
                         <CheckCircle2 size={12} /> Confirmed
                       </span>
@@ -197,7 +205,7 @@ const Dashboard = () => {
                     )}
                   </div>
                 </div>
-                {b.status === "confirmed" && (
+                {(b.status === "Confirmed" || b.status === "confirmed") && (
                   <div className="mt-2 flex items-center gap-1.5 text-xs text-green-600 font-medium">
                     <Ticket size={14} /> Tap to view Boarding Pass
                   </div>
@@ -233,29 +241,29 @@ const Dashboard = () => {
                     <span className="font-mono text-accent text-xs font-bold">{d.tracking_id}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${st.color}`}>{st.label}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{d.pickup} → {d.dropoff}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{d.pickup || d.pickup_location} → {d.dropoff || d.delivery_location}</p>
 
-                  {d.status === "assigned" && d.biker_phone && (
+                  {(d.status === "Assigned" || d.status === "assigned") && (d.biker_phone || d.assigned_biker_phone) && (
                     <div className="mt-2 bg-blue-500/5 border border-blue-500/20 rounded-lg p-2.5">
                       <p className="text-xs font-semibold text-blue-600 mb-1">🏍️ Your Delivery Rider</p>
                       <p className="text-xs text-muted-foreground mb-1.5">Your package has been assigned to a rider</p>
                       <a
-                        href={`https://wa.me/${d.biker_phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello, regarding my package ${d.tracking_id}`)}`}
+                        href={`https://wa.me/${(d.biker_phone || d.assigned_biker_phone || "").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello, regarding my package ${d.tracking_id}`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 text-xs bg-[#25D366]/10 text-[#25D366] px-3 py-1.5 rounded-lg font-medium hover:bg-[#25D366]/20 transition-colors"
                       >
                         <MessageCircle size={14} fill="#25D366" />
-                        Contact Rider: {d.biker_phone}
+                        Contact Rider: {d.biker_phone || d.assigned_biker_phone}
                       </a>
                     </div>
                   )}
 
-                  {d.status === "completed" && (
+                  {(d.status === "Completed" || d.status === "completed") && (
                     <p className="mt-2 text-xs text-green-600 font-medium">✅ Package delivered successfully – thank you!</p>
                   )}
 
-                  {d.status === "pending_delivery" && (
+                  {(d.status === "Pending Delivery & Payment" || d.status === "pending_delivery") && (
                     <div className="mt-2">
                       <a
                         href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my package ${d.tracking_id}. I need help.`)}`}
@@ -373,16 +381,16 @@ const Dashboard = () => {
                   </p>
                 </div>
 
-                {selectedBooking.status === "pending_payment" && (
+                {(selectedBooking.status === "Pending Payment" || selectedBooking.status === "Pending" || selectedBooking.status === "pending_payment") && (
                   <div className="mt-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3">
                     <p className="text-xs font-semibold text-yellow-700 mb-1">💳 Payment Instructions</p>
                     <p className="text-xs text-muted-foreground">
-                      Transfer ₦{Number(selectedBooking.price).toLocaleString()} to:
+                      Transfer ₦{Number(selectedBooking.amount || selectedBooking.price).toLocaleString()} to:
                     </p>
                     <div className="mt-1 text-xs font-mono bg-background/50 rounded-lg p-2">
                       <p>Bank: Opay</p>
                       <p>Account: 8082144372</p>
-                      <p>Name: Beloved Okikioluwa Isiak</p>
+                      <p>Name: Oluwadamilare</p>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       After transfer, contact support for verification.

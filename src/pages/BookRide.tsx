@@ -63,9 +63,9 @@ const BookRide = () => {
   // Pre-fill from profile
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("full_name, phone").eq("user_id", user.id).single().then(({ data }) => {
+    supabase.from("profiles").select("full_name, phone_number").eq("id", user.id).maybeSingle().then(({ data }) => {
       if (data?.full_name) setFullName(data.full_name);
-      if (data?.phone) setPhone(data.phone);
+      if (data?.phone_number) setPhone(data.phone_number);
     });
   }, [user]);
 
@@ -109,10 +109,14 @@ const BookRide = () => {
       user_id: user.id,
       route: selectedTrip.route,
       travel_date: tripLabel,
-      pickup,
-      passengers: seats,
-      price: totalPrice,
-      status: "pending_payment",
+      pickup_location: pickup,
+      seats: seats,
+      full_name: fullName,
+      phone_number: phone,
+      booking_reference: ref,
+      amount: totalPrice,
+      payment_status: "Pending Payment",
+      status: "Pending",
     });
 
     if (dbError) {

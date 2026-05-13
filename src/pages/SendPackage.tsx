@@ -133,16 +133,21 @@ const SendPackage = () => {
     const { error: dbError } = await supabase.from("dispatches").insert({
       user_id: user.id,
       tracking_id: id,
+      tracking_number: id,
       package_type: form.packageType,
+      pickup_location: form.pickup,
       pickup: form.pickup,
+      delivery_location: form.dropoff,
       dropoff: form.dropoff,
       sender_name: form.senderName,
       sender_phone: form.senderPhone,
       receiver_name: form.receiverName,
       receiver_phone: form.receiverPhone,
+      delivery_option: form.delivery,
       delivery_type: form.delivery,
+      estimated_price: priceBreakdown.total,
       price: priceBreakdown.total,
-      status: "pending_delivery",
+      status: "Pending Delivery & Payment",
     });
 
     if (dbError) {

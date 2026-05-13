@@ -64,12 +64,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       } else if (user) {
         const { data } = await supabase
           .from("profiles")
-          .select("full_name, phone")
-          .eq("user_id", user.id)
+          .select("full_name, phone_number")
+          .eq("id", user.id)
           .maybeSingle();
         setProfileInfo({
           full_name: data?.full_name,
-          phone: data?.phone,
+          phone: data?.phone_number,
           email: user.email,
         });
       }
