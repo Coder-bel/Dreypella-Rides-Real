@@ -9,6 +9,7 @@ import {
   PASSWORD_ERROR,
 } from "@/lib/constants";
 import ForgotPasswordDialog from "@/components/ForgotPasswordDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -39,9 +40,23 @@ const Auth = () => {
     if (isLogin) {
       const { error } = await signIn(email, password);
       if (error) {
-        setError(error.message || "Sign in failed. Please try again.");
+        // Must never reveal role; always use the same message
+        setError("Invalid login credentials.");
       } else {
-        navigate("/dashboard");
+        // Redirect based on role (never reveal role on errors)
+        const { data: { user: authedUser } } = await supabase.auth.getUser();
+        const uid = authedUser?.id;
+        if (!uid) return navigate("/dashboard");
+
+        const { data: rolesData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", uid);
+
+        const roles = (rolesData || []).map((r: any) => r.role);
+        if (roles.includes("admin")) navigate("/admin");
+        else if (roles.includes("biker")) navigate("/bikers");
+        else navigate("/dashboard");
       }
     } else {
       const { data, error } = await signUp(email, password, {

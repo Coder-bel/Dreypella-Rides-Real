@@ -26,14 +26,15 @@ export const useUserRole = (): { role: UserRole; loading: boolean } => {
         }
         return;
       }
+      // Detect biker via `public.bikers.status` with values 'Active'/'Inactive'
       const { data } = await supabase
-        .from("user_roles")
-        .select("role")
+        .from("bikers")
+        .select("id, status")
         .eq("user_id", user.id)
-        .eq("role", "biker")
         .maybeSingle();
+
       if (!cancelled) {
-        setIsBikerSupabase(!!data);
+        setIsBikerSupabase(!!data && data.status === "Active");
         setBikerChecked(true);
       }
     };
