@@ -38,30 +38,33 @@ const Auth = () => {
     setLoading(true);
 
     if (isLogin) {
-      const { error } = await signIn(email, password);
-      if (error) {
-        // Must never reveal role; always use the same message
-        setError("Invalid login credentials.");
-      } else {
-        // Redirect based on role (never reveal role on errors)
-        const { data: { user: authedUser } } = await supabase.auth.getUser();
-        const uid = authedUser?.id;
-        if (!uid) return navigate("/dashboard");
+  const { error } = await signIn(email, password);
+  if (error) {
+    setError("Invalid login credentials.");
+  } else {
+    const { data: { user: authedUser } } = await supabase.auth.getUser();
+    const uid = authedUser?.id;
+    if (!uid) return navigate("/dashboard");
 
-        const { data: rolesData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", uid);
+    const { data: rolesData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", uid);
 
-        const roles = (rolesData || []).map((r: any) => r.role);
+    const roles = (rolesData || []).map((r: any) => r.role);
 
-        // Redirect by role. Never reveal role on login errors.
-        if (roles.includes("admin")) navigate("/admin");
-        else if (roles.includes("biker")) navigate("/bikers");
-        else navigate("/dashboard");
+    // Block admin and biker from using user login page
+    if (roles.includes("admin") || roles.includes("biker")) {
+      // Sign them out immediately
+      await supabase.auth.signOut();
+      setError("Invalid login credentials.");
+      setLoading(false);
+      return;
+    }
 
-      }
-    } else {
+    navigate("/dashboard");
+  }
+} else {
       const { data, error } = await signUp(email, password, {
         full_name: fullName,
         phone,

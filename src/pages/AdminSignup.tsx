@@ -77,13 +77,36 @@ const AdminSignup = () => {
       return setError(result.error || "Admin signup failed.");
     }
 
-    const { error: signInErr } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
-    if (signInErr) {
-      setBusy(false);
-      return setError(signInErr.message || "Account created, but automatic sign-in failed. Please sign in manually.");
-    }
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ 
+  email: normalizedEmail, 
+  password 
+});
 
-    navigate("/admin");
+if (signInErr) {
+  setBusy(false);
+  return setError(signInErr.message || "Account created, but automatic sign-in failed. Please sign in manually.");
+}
+
+// Verify admin role was assigned
+const { data: { user: authedUser } } = await supabase.auth.getUser();
+const uid = authedUser?.id;
+
+if (uid) {
+  const { data: rolesData } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", uid);
+
+  const roles = (rolesData || []).map((r: any) => r.role);
+
+  if (!roles.includes("admin")) {
+    // Force insert admin role since edge function may have missed it
+    await supabase.from("admins").insert({ user_id: uid, onboarded: false });
+  }
+}
+
+navigate("/admin");
+
   };
 
   const inputCls = "w-full rounded-xl border bg-background px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none";

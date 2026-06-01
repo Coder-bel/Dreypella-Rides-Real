@@ -17,42 +17,62 @@ const BikersLogin = () => {
   const [showForgot, setShowForgot] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    const code = companyCode.trim().toUpperCase();
-    if (!/^DPR-\d{4}$/.test(code)) {
-      return setError("Invalid Company Code format. Expected: DPR-XXXX");
-    }
-    if (!password) {
-      return setError("Password is required");
-    }
+  const code = companyCode.trim().toUpperCase();
+  if (!/^DPR-\d{4}$/.test(code)) {
+    return setError("Invalid Company Code format. Expected: DPR-XXXX");
+  }
+  if (!password) {
+    return setError("Password is required");
+  }
 
-    setLoading(true);
-    const { data: emailLookup, error: lookupErr } = await supabase.rpc(
-      "get_biker_login_email" as any,
-      { _company_code: code }
-    );
+  setLoading(true);
+  const { data: emailLookup, error: lookupErr } = await supabase.rpc(
+    "get_biker_login_email" as any,
+    { _company_code: code }
+  );
 
-    if (lookupErr || !emailLookup) {
-      setLoading(false);
-      return setError("Invalid Company Code or password.");
-    }
-
-    const loginEmail = String(emailLookup);
-    const { error: signInErr } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password,
-    });
-
-    if (signInErr) {
-      setLoading(false);
-      return setError("Invalid Company Code or password.");
-    }
-
+  if (lookupErr || !emailLookup) {
     setLoading(false);
-    navigate("/bikers");
-  };
+    return setError("Invalid Company Code or password.");
+  }
+
+  const loginEmail = String(emailLookup);
+  const { error: signInErr } = await supabase.auth.signInWithPassword({
+    email: loginEmail,
+    password,
+  });
+
+  if (signInErr) {
+    setLoading(false);
+    return setError("Invalid Company Code or password.");
+  }
+
+  // Verify the user actually has biker role
+  const { data: { user: authedUser } } = await supabase.auth.getUser();
+  const uid = authedUser?.id;
+
+  if (uid) {
+    const { data: rolesData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", uid);
+
+    const roles = (rolesData || []).map((r: any) => r.role);
+
+    if (!roles.includes("biker")) {
+      // Sign out immediately — not a biker
+      await supabase.auth.signOut();
+      setLoading(false);
+      return setError("Invalid Company Code or password.");
+    }
+  }
+
+  setLoading(false);
+  navigate("/bikers");
+};
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
