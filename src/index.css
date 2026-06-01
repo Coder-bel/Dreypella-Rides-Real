@@ -1,0 +1,353 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 97%;
+    --foreground: 210 60% 6%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 60% 6%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 60% 6%;
+
+    --primary: 210 100% 12%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 30% 92%;
+    --secondary-foreground: 210 100% 12%;
+
+    --muted: 210 20% 94%;
+    --muted-foreground: 210 15% 45%;
+
+    --accent: 352 88% 43%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 25% 88%;
+    --input: 210 25% 88%;
+    --ring: 210 100% 12%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 210 100% 8%;
+    --sidebar-foreground: 210 20% 94%;
+    --sidebar-primary: 352 88% 43%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 60% 18%;
+    --sidebar-accent-foreground: 210 20% 94%;
+    --sidebar-border: 210 40% 20%;
+    --sidebar-ring: 352 88% 43%;
+
+    /* Custom tokens */
+    --navy: 210 100% 12%;
+    --navy-light: 210 60% 20%;
+    --red-brand: 352 88% 43%;
+    --red-brand-light: 352 80% 55%;
+    --gold: 42 90% 55%;
+  }
+
+  .dark {
+    /* Deep navy background for readability */
+    --background: 222 47% 11%;        /* #0F172A */
+    --foreground: 210 40% 96%;        /* #F1F5F9 — high-contrast main text */
+
+    --card: 217 33% 17%;              /* #1E293B */
+    --card-foreground: 210 40% 96%;
+
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 210 40% 96%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 217 33% 22%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 217 33% 22%;
+    --muted-foreground: 215 20% 80%;  /* #CBD5E1 — softer secondary text */
+
+    --accent: 352 88% 55%;            /* brighter red for dark bg */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 25% 30%;            /* visible borders */
+    --input: 215 25% 30%;
+    --ring: 352 88% 55%;
+
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 352 88% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 20%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 215 25% 25%;
+    --sidebar-ring: 352 88% 55%;
+
+    /* Custom brand tokens — keep brand identity */
+    --navy: 210 100% 12%;
+    --navy-light: 210 60% 20%;
+    --red-brand: 352 88% 55%;
+    --red-brand-light: 352 80% 65%;
+    --gold: 42 90% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Mobile-first touch targets — buttons & links should be at least 40px tall on small screens */
+  @media (max-width: 767px) {
+    button,
+    a[role="button"],
+    [type="button"],
+    [type="submit"] {
+      min-height: 40px;
+    }
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      font-size: 16px; /* prevents iOS zoom on focus */
+    }
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  }
+
+  .bg-navy-gradient {
+    background: linear-gradient(135deg, hsl(210 100% 12%), hsl(210 60% 20%));
+  }
+
+  .bg-hero-overlay {
+    background: linear-gradient(
+      to bottom,
+      hsl(210 100% 12% / 0.85),
+      hsl(210 100% 12% / 0.95)
+    );
+  }
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-red {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(352 88% 43% / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px hsl(352 88% 43% / 0);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes count-tick {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.15);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out both;
+}
+
+.animate-fade-in-up-delay-1 {
+  animation: fade-in-up 0.6s ease-out 0.15s both;
+}
+
+.animate-fade-in-up-delay-2 {
+  animation: fade-in-up 0.6s ease-out 0.3s both;
+}
+
+.animate-fade-in-up-delay-3 {
+  animation: fade-in-up 0.6s ease-out 0.45s both;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.5s ease-out both;
+}
+
+.animate-pulse-red {
+  animation: pulse-red 2s ease-in-out infinite;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.8s ease-out both;
+}
+
+.animate-count-tick {
+  animation: count-tick 0.3s ease-out;
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-out;
+}
+
+/* Hover effects */
+.hover-lift {
+  @apply transition-all duration-200;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -8px hsl(210 100% 12% / 0.25);
+}
+
+/* Animated Hero Background */
+.hero-animated-bg {
+  position: relative;
+  background: linear-gradient(135deg, hsl(210 100% 12%), hsl(210 60% 20%), hsl(352 88% 43% / 0.15), hsl(210 100% 12%));
+  background-size: 400% 400%;
+  animation: hero-gradient 12s ease infinite;
+  overflow: hidden;
+}
+
+@keyframes hero-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(hsl(0 0% 100% / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(0 0% 100% / 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.hero-shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  filter: blur(40px);
+}
+
+.hero-shape-1 {
+  width: 200px;
+  height: 200px;
+  background: hsl(352 88% 43%);
+  top: -40px;
+  right: -30px;
+  animation: float-1 8s ease-in-out infinite;
+}
+
+.hero-shape-2 {
+  width: 150px;
+  height: 150px;
+  background: hsl(210 100% 50%);
+  bottom: -20px;
+  left: -20px;
+  animation: float-2 10s ease-in-out infinite;
+}
+
+.hero-shape-3 {
+  width: 100px;
+  height: 100px;
+  background: hsl(42 90% 55%);
+  top: 50%;
+  left: 50%;
+  animation: float-3 7s ease-in-out infinite;
+}
+
+.hero-shape-4 {
+  width: 120px;
+  height: 120px;
+  background: hsl(352 88% 43%);
+  bottom: 10%;
+  right: 20%;
+  animation: float-1 9s ease-in-out infinite reverse;
+}
+
+@keyframes float-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -30px) scale(1.1); }
+}
+
+@keyframes float-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-15px, 20px) scale(1.15); }
+}
+
+@keyframes float-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(10px, -15px) scale(0.9); }
+}
+
+.dark .hero-animated-bg {
+  background: linear-gradient(135deg, hsl(210 60% 6%), hsl(210 50% 10%), hsl(352 88% 30% / 0.2), hsl(210 60% 6%));
+  background-size: 400% 400%;
+  animation: hero-gradient 12s ease infinite;
+}
