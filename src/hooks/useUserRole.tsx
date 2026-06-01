@@ -4,51 +4,57 @@
  * Biker role is detected via Supabase user_roles table.
  */
 import { useEffect, useState } from "react";
-import { useAdmin } from "@/hooks/useAdmin";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
-export type UserRole = "admin" | "biker" | "user" | "guest";
+export type UserRole = "admin" | "biker" | "user";
 
-export const useUserRole = (): { role: UserRole; loading: boolean } => {
+export const useUserRole = (): { role: UserRole | null; loading: boolean } => {
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: adminLoading } = useAdmin();
-  const [isBikerSupabase, setIsBikerSupabase] = useState(false);
-  const [bikerChecked, setBikerChecked] = useState(false);
+  const [role, setRole] = useState<UserRole | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    const check = async () => {
+
+    const fetchRole = async () => {
       if (!user) {
         if (!cancelled) {
-          setIsBikerSupabase(false);
-          setBikerChecked(true);
+          setRole("null");
+          setLoading(false);
         }
         return;
       }
-      // Detect biker via public.bikers.status column.
-      // App convention: status === 'Active' means the biker can access biker routes.
-      const { data } = await supabase
-        .from("bikers")
-        .select("id, status")
+
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (!cancelled) {
-        setIsBikerSupabase(!!data && data.status === "Active");
-        setBikerChecked(true);
+        if (error || !data) {
+          setRole("user"); // default to user if no role found
+        } else {
+          setRole(data.role as UserRole);
+        }
+        setLoading(false);
       }
-
     };
-    if (!authLoading) check();
+
+    if (!authLoading) fetchRole();
     return () => { cancelled = true; };
   }, [user, authLoading]);
 
-  if (authLoading || adminLoading || (user && !bikerChecked)) {
-    return { role: "guest", loading: true };
-  }
-  if (isBikerSupabase) return { role: "biker", loading: false };
-  if (isAdmin) return { role: "admin", loading: false };
-  if (user) return { role: "user", loading: false };
-  return { role: "guest", loading: false };
+  if (authLoading) return { role: "null", loading: true };
+
+  return { role, loading };
 };
+
+
+
+
+
+
+
+

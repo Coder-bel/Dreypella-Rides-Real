@@ -20,6 +20,7 @@ import BikersDashboard from "./pages/BikersDashboard";
 import AdminSignup from "./pages/AdminSignup";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import AdminLogin from "./pages/AdminLogin";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/bikers-signup" element={<BikersSignup />} />
               <Route path="/bikers" element={<BikerRoute><BikersDashboard /></BikerRoute>} />
               <Route path="/admin-signup" element={<AdminSignup />} />
+	      <Route path="/admin-login" element={<AdminLogin />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
