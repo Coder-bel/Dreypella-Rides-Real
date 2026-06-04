@@ -4,6 +4,7 @@
  * recovery work). No email verification step — account is created and signed in
  * immediately, then redirected to /bikers.
  */
+import PasswordInput from "@/components/PasswordInput";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Bike, AlertCircle, ArrowLeft } from "lucide-react";
@@ -223,14 +224,7 @@ const BikersSignup = () => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className={inputClass}
-                placeholder="Min 8 chars (Aa1!)"
-              />
+              <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} placeholder="Min 8 chars (Aa1!)" />
               <p className="text-[11px] text-muted-foreground mt-1">{PASSWORD_ERROR}</p>
             </div>
             <button

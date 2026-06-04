@@ -35,21 +35,31 @@ const UsersOverview = () => {
 
   const fetchUsers = async () => {
     setLoading(true);
+    const { data: nonUserRoles } = await supabase
+    .from("user_roles")
+    .select("user_id")
+    .in("role", ["biker", "admin"]);
+
+  const excludeIds = (nonUserRoles || []).map((r: any) => r.user_id);
     const { data, error } = await supabase.rpc("get_users_overview" as any);
     if (error) {
       console.error("Failed to fetch users overview:", error);
       setUsers([]);
-    } else {
-      setUsers(((data as any[]) || []).map((u) => ({
-        user_id: u.user_id,
-        full_name: u.full_name,
-        email: u.email,
-        phone: u.phone,
-        matric_number: u.matric_number,
-        created_at: u.created_at,
-        total_rides: Number(u.total_rides) || 0,
-        total_packages: Number(u.total_packages) || 0,
-      })));
+    }else {
+    // Filter out bikers and admins
+    const filtered = ((data as any[]) || []).filter(
+      (u) => !excludeIds.includes(u.user_id)
+    );
+    setUsers(filtered.map((u) => ({
+      user_id: u.user_id,
+      full_name: u.full_name,
+      email: u.email,
+      phone: u.phone,
+      matric_number: u.matric_number,
+      created_at: u.created_at,
+      total_rides: Number(u.total_rides) || 0,
+      total_packages: Number(u.total_packages) || 0,
+    })));
     }
     setLoading(false);
   };

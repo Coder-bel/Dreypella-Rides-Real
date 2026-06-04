@@ -2,6 +2,7 @@
  * Biker login — Company Code (DPR-XXXX) + Password only.
  * Internally signs in via the synthetic email derived from the code.
  */
+import PasswordInput from "@/components/PasswordInput";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Bike, AlertCircle } from "lucide-react";
@@ -114,14 +115,7 @@ const BikersLogin = () => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                className="w-full rounded-xl border bg-background px-3 py-3 text-base focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all"
-              />
+              <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" className="w-full rounded-xl border bg-background px-3 py-3 text-base focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
             </div>
             <button
               type="submit"

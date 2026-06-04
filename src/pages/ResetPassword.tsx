@@ -5,6 +5,7 @@
  * to Supabase → Authentication → URL Configuration → Redirect URLs so the recovery
  * email link works on production as well.
  */
+import PasswordInput from "@/components/PasswordInput";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -146,14 +147,7 @@ const ResetPassword = () => {
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">New Password</label>
                 <div className="relative">
                   <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    type="password"
-                    value={pw}
-                    onChange={(e) => setPw(e.target.value)}
-                    placeholder="Enter new password"
-                    className="w-full rounded-xl border border-border bg-background pl-9 pr-3 py-2.5 text-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent outline-none"
-                    required
-                  />
+                  <PasswordInput value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Enter new password" className="w-full rounded-xl border border-border bg-background pl-9 py-2.5 text-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent outline-none" required />
                 </div>
                 {pw && (
                   <div className="mt-2">
@@ -174,14 +168,7 @@ const ResetPassword = () => {
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Confirm New Password</label>
                 <div className="relative">
                   <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    type="password"
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                    placeholder="Re-enter new password"
-                    className="w-full rounded-xl border border-border bg-background pl-9 pr-3 py-2.5 text-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent outline-none"
-                    required
-                  />
+                  <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Re-enter new password" className="w-full rounded-xl border border-border bg-background pl-9 py-2.5 text-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent outline-none" required />
                 </div>
               </div>
 

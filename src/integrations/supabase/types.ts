@@ -24,6 +24,7 @@ export type Database = {
           invite_code: string
           invited_by: string | null
           phone: string
+	  phone_number: string
           status: string
           used_at: string | null
           used_by: string | null
@@ -37,6 +38,7 @@ export type Database = {
           invite_code: string
           invited_by?: string | null
           phone: string
+	  phone_number: string
           status?: string
           used_at?: string | null
           used_by?: string | null
@@ -50,6 +52,7 @@ export type Database = {
           invite_code?: string
           invited_by?: string | null
           phone?: string
+	  phone_number: string
           status?: string
           used_at?: string | null
           used_by?: string | null

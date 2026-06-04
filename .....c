@@ -327,7 +327,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             © {new Date().getFullYear()} DREYPELLA RIDE. All rights reserved.
           </p>
           
-          <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Hello DREYPELLA support, I need help.")}`}
+            href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Hello DREYPELLA support, I need help.")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-[#25D366] hover:underline"

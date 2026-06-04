@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ShieldCheck, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import PasswordInput from "@/components/PasswordInput";
 import { isValidPhone, isValidPassword, PASSWORD_ERROR } from "@/lib/constants";
 
 const AdminSignup = () => {
@@ -73,20 +74,26 @@ const AdminSignup = () => {
     }
 
     if (!result.success) {
-      setBusy(false);
-      return setError(result.error || "Admin signup failed.");
-    }
+  setBusy(false);
+  return setError(result.error || "Admin signup failed.");
+}
 
-    const { error: signInErr } = await supabase.auth.signInWithPassword({ 
+// Sign in
+const { error: signInErr } = await supabase.auth.signInWithPassword({ 
   email: normalizedEmail, 
   password 
 });
 
 if (signInErr) {
   setBusy(false);
-  return setError(signInErr.message || "Account created, but automatic sign-in failed. Please sign in manually.");
+  return setError("Account created! Please sign in at /admin-login using your invite code as your company code.");
 }
 
+// Wait for session and role to be established
+await new Promise(resolve => setTimeout(resolve, 1500));
+
+setBusy(false);
+navigate("/admin");
 // Verify admin role was assigned
 const { data: { user: authedUser } } = await supabase.auth.getUser();
 const uid = authedUser?.id;
@@ -127,7 +134,7 @@ navigate("/admin");
             <h1 className="font-display font-bold text-xl">Admin Signup</h1>
             <p className="text-xs text-muted-foreground mt-1">Use the invite code shared by an existing admin.</p>
             <p className="text-xs text-muted-foreground mt-3">
-              Already signed up? <Link to="/auth" className="font-semibold text-accent hover:underline">Sign in</Link> instead.
+              Already signed up? <Link to="/admin-login" className="font-semibold text-accent hover:underline">Sign in</Link> instead.
             </p>
           </div>
           {error && (
@@ -146,7 +153,7 @@ navigate("/admin");
             <input className={inputCls} type="tel" placeholder="Phone (11 digits)" maxLength={11} value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))} />
             <input className={inputCls + " font-mono uppercase"} placeholder="ADPR-XXXX" maxLength={9} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
             <p className="text-[11px] text-muted-foreground">If this is the first admin account, you can leave the invite code blank.</p>
-            <input className={inputCls} type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <PasswordInput className={inputCls} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
             <p className="text-[11px] text-muted-foreground">{PASSWORD_ERROR}</p>
             <button disabled={busy} className="w-full bg-accent text-accent-foreground font-semibold py-3 rounded-xl disabled:opacity-60">
               {busy ? "Creating..." : "Create Admin Account"}

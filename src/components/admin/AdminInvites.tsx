@@ -48,13 +48,40 @@ const AdminInvites = () => {
     if (!email.trim()) return setError("Email is required");
     if (!isValidPhone(phone)) return setError("Phone must be exactly 11 digits");
     setBusy(true);
+    
+    // Check if email is already used by a normal user
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select("id, email")
+    .eq("email", email.trim().toLowerCase())
+    .maybeSingle();
+
+  if (existingProfile) {
+    setBusy(false);
+    return setError("This email is already registered as a user account. Please use a different email for the admin invite.");
+  }
+
+  // Also check if email is already an admin
+  const { data: existingInvite } = await supabase
+    .from("admin_invites")
+    .select("id")
+    .eq("email", email.trim().toLowerCase())
+    .eq("status", "Pending Signup")
+    .maybeSingle();
+
+  if (existingInvite) {
+    setBusy(false);
+    return setError("An invite has already been sent to this email. Check the invites list below.");
+  }
     const code = await getUniqueAdminCode();
     const { error: insErr } = await supabase.from("admin_invites").insert({
       full_name: fullName.trim(),
       email: email.trim(),
       phone: phone.trim(),
+      phone_number: phone.trim(),
       invite_code: code,
       invited_by: user?.id,
+      expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
     });
     setBusy(false);
     if (insErr) return setError(insErr.message);

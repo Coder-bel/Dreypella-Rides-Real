@@ -27,8 +27,8 @@ const BikersOverview = () => {
   const fetchData = async () => {
     setLoading(true);
     const [bRes, dRes] = await Promise.all([
-      supabase.from("bikers").select("id, full_name, whatsapp_number, company_code, plate_number, onboarded, created_at, status").order("created_at", { ascending: false }),
-      supabase.from("dispatches").select("assigned_biker_id, status").eq("status", "completed"),
+      supabase.from("bikers").select("id, full_name, whatsapp_number, company_code, plate_number, onboarded, created_at, status") .not("user_id", "is", null) .order("created_at", { ascending: false }),
+      supabase.from("dispatches").select("assigned_biker_id, status").eq("status", "Delivered"),
     ]);
     const counts = new Map<string, number>();
     (dRes.data || []).forEach((d: any) => {
@@ -103,7 +103,7 @@ const BikersOverview = () => {
                   <TableCell className="text-white/70 text-xs">{new Date(b.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-white/70 text-xs text-center">{b.delivered}</TableCell>
                   <TableCell>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${b.is_active ? "bg-green-500/15 text-green-400" : "bg-white/10 text-white/50"}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${b.onboarded ? "bg-green-500/15 text-green-400" : "bg-white/10 text-white/50"}`}>
                       {b.onboarded ? "Active" : "Inactive"}
                     </span>
                   </TableCell>

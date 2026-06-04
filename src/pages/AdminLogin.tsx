@@ -1,3 +1,4 @@
+import PasswordInput from "@/components/PasswordInput";
 import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ShieldCheck, AlertCircle } from "lucide-react";
@@ -153,13 +154,7 @@ const AdminLogin = () => {
 
             <div>
               <label className="block text-sm font-medium mb-1.5">Password</label>
-              <input
-                className={inputCls}
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <PasswordInput className={inputCls} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
 
             <button

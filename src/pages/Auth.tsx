@@ -10,6 +10,7 @@ import {
 } from "@/lib/constants";
 import ForgotPasswordDialog from "@/components/ForgotPasswordDialog";
 import { supabase } from "@/integrations/supabase/client";
+import PasswordInput from "@/components/PasswordInput";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -131,7 +132,7 @@ const Auth = () => {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1.5">Password</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} placeholder={isLogin ? "Your password" : "8+ chars, letters + numbers + special"} />
+          <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} placeholder={isLogin ? "Your password" : "8+ chars, letters + numbers + special"} />
           {!isLogin && (
             <p className="text-[11px] text-muted-foreground mt-1">{PASSWORD_ERROR}</p>
           )}
