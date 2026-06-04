@@ -93,11 +93,12 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
-          is_active: boolean
+          onboarded: boolean
+          phone_number: string        // ← add
           plate_number: string | null
           status: string
           user_id: string | null
-          whatsapp_number: string
+          whatsapp_number: string | null  // ← make nullable
         }
         Insert: {
           company_code?: string | null
@@ -105,11 +106,12 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
-          is_active?: boolean
+          onboarded?: boolean
+          phone_number: string        // ← add (required)
           plate_number?: string | null
           status?: string
           user_id?: string | null
-          whatsapp_number: string
+          whatsapp_number?: string | null  // ← make nullable
         }
         Update: {
           company_code?: string | null
@@ -117,11 +119,12 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
-          is_active?: boolean
+          onboarded?: boolean
+          phone_number?: string       // ← add
           plate_number?: string | null
           status?: string
           user_id?: string | null
-          whatsapp_number?: string
+          whatsapp_number?: string | null  // ← make nullable
         }
         Relationships: []
       }
@@ -164,14 +167,22 @@ export type Database = {
       dispatches: {
         Row: {
           assigned_biker_id: string | null
+          assigned_biker_phone: string | null
           biker_assigned: string | null
           biker_phone: string | null
           created_at: string
+          delivery_location: string | null
+          delivery_option: string | null
           delivery_type: string
           dropoff: string
+          estimated_price: number | null
           id: string
           package_type: string
+          payment_reviewed_at: string | null
+          payment_reviewed_by: string | null
+          payment_status: string | null
           pickup: string
+          pickup_location: string | null
           price: number
           receiver_name: string | null
           receiver_phone: string
@@ -179,18 +190,27 @@ export type Database = {
           sender_phone: string
           status: string
           tracking_id: string
+          tracking_number: string | null
           user_id: string
         }
         Insert: {
           assigned_biker_id?: string | null
+          assigned_biker_phone?: string | null
           biker_assigned?: string | null
           biker_phone?: string | null
           created_at?: string
+          delivery_location?: string | null
+          delivery_option?: string | null
           delivery_type?: string
           dropoff: string
+          estimated_price?: number | null
           id?: string
           package_type: string
+          payment_reviewed_at?: string | null
+          payment_reviewed_by?: string | null
+          payment_status?: string | null
           pickup: string
+          pickup_location?: string | null
           price: number
           receiver_name?: string | null
           receiver_phone: string
@@ -198,18 +218,27 @@ export type Database = {
           sender_phone: string
           status?: string
           tracking_id: string
+          tracking_number?: string | null
           user_id: string
         }
         Update: {
           assigned_biker_id?: string | null
+          assigned_biker_phone?: string | null
           biker_assigned?: string | null
           biker_phone?: string | null
           created_at?: string
+          delivery_location?: string | null
+          delivery_option?: string | null
           delivery_type?: string
           dropoff?: string
+          estimated_price?: number | null
           id?: string
           package_type?: string
+          payment_reviewed_at?: string | null
+          payment_reviewed_by?: string | null
+          payment_status?: string | null
           pickup?: string
+          pickup_location?: string | null
           price?: number
           receiver_name?: string | null
           receiver_phone?: string
@@ -217,6 +246,7 @@ export type Database = {
           sender_phone?: string
           status?: string
           tracking_id?: string
+          tracking_number?: string | null
           user_id?: string
         }
         Relationships: []

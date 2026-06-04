@@ -7,8 +7,8 @@ import { useState, useEffect, useRef } from "react";
 import { Bus, Package, Clock, LogOut, X, MessageCircle, Printer, CircleCheck as CheckCircle2, Ticket } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import SupportWhatsApp from "@/components/SupportWhatsApp";
+import { useNavigate, useLocation } from "react-router-dom";
 import { SUPPORT_WHATSAPP } from "@/lib/constants";
 
 const friendlyStatus: Record<string, { label: string; color: string }> = {
@@ -25,8 +25,11 @@ const friendlyStatus: Record<string, { label: string; color: string }> = {
 
 const dispatchStatusLabel: Record<string, { label: string; color: string }> = {
   "Pending Delivery & Payment": { label: "Pending Delivery & Payment", color: "bg-yellow-500/10 text-yellow-600" },
-  "Assigned": { label: "Rider assigned – on the way!", color: "bg-blue-500/10 text-blue-600" },
-  "Completed": { label: "Package delivered successfully – thank you!", color: "bg-green-500/10 text-green-600" },
+  "Biker Assigned": { label: "Rider assigned – on the way!", color: "bg-blue-500/10 text-blue-600" },
+  "In Progress": { label: "In progress – on the way!", color: "bg-blue-500/10 text-blue-600" },
+  "Delivered": { label: "Package delivered successfully – thank you!", color: "bg-green-500/10 text-green-600" },
+  "Cancelled": { label: "Booking cancelled", color: "bg-red-500/10 text-red-500" },
+  // keep old ones for backward compatibility
   "pending_delivery": { label: "Pending Delivery & Payment", color: "bg-yellow-500/10 text-yellow-600" },
   "assigned": { label: "Rider assigned – on the way!", color: "bg-blue-500/10 text-blue-600" },
   "completed": { label: "Package delivered successfully – thank you!", color: "bg-green-500/10 text-green-600" },
@@ -35,6 +38,10 @@ const dispatchStatusLabel: Record<string, { label: string; color: string }> = {
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();    
+  const newBooking = location.state?.newBooking;
+  const bookingRef = location.state?.bookingRef
+  const bookingRoute = location.state?.route;  
   const [bookings, setBookings] = useState<any[]>([]);
   const [dispatches, setDispatches] = useState<any[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
@@ -84,7 +91,7 @@ const Dashboard = () => {
             .header { text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 16px; margin-bottom: 16px; }
             .header h1 { font-size: 20px; color: #001F3F; margin: 0; }
             .header p { font-size: 12px; color: #666; margin: 4px 0 0; }
-            .ref { font-size: 28px; font-weight: bold; color: #C8102E; text-align: center; margin: 16px 0; font-family: monospace; letter-spacing: 2px; }
+            .ref { font-size: 28px; font-weight: bold; color: #C8102E; texam getting t-align: center; margin: 16px 0; font-family: monospace; letter-spacing: 2px; }
             .status { text-align: center; background: #dcfce7; color: #166534; padding: 8px; border-radius: 8px; font-weight: 600; font-size: 13px; margin-bottom: 16px; }
             .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
             .row .label { color: #666; }
@@ -116,6 +123,33 @@ const Dashboard = () => {
 
   return (
     <div className="container px-4 py-6 max-w-lg mx-auto">
+       {newBooking && bookingRef && (
+  <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-4 mb-4 animate-fade-in-up">
+    <div className="flex items-start gap-3">
+      <CheckCircle2 size={20} className="text-green-500 shrink-0 mt-0.5" />
+      <div className="flex-1">
+        <p className="font-semibold text-green-600 text-sm">Booking Submitted!</p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Your payment is pending verification. Show this reference at the bus for boarding.
+        </p>
+        <div className="bg-accent/10 rounded-xl p-3 mt-2 text-center">
+          <p className="text-xs text-muted-foreground mb-1">Booking Reference</p>
+          <p className="text-xl font-mono font-bold text-accent">{bookingRef}</p>
+          <p className="text-xs text-muted-foreground mt-1">{bookingRoute}</p>
+        </div>
+        
+         <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my booking ${bookingRef}. I just made payment, please confirm.`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+        >
+          <MessageCircle size={16} fill="white" />
+          Send Payment Proof to Support
+        </a>
+      </div>
+    </div>
+  </div>
+)}
       <div className="flex items-center justify-between mb-1 animate-fade-in-up">
         <h1 className="font-display font-bold text-xl">Dashboard</h1>
         <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground transition-colors p-2">
@@ -211,8 +245,7 @@ const Dashboard = () => {
                   </div>
                 )}
                 <div className="mt-2">
-                  <a
-                    href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my ride booking ${b.route} on ${b.travel_date}. I need help.`)}`}
+                  <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my ride booking ${b.route} on ${b.travel_date}. I need help.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
@@ -243,12 +276,12 @@ const Dashboard = () => {
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">{d.pickup || d.pickup_location} → {d.dropoff || d.delivery_location}</p>
 
-                  {(d.status === "Assigned" || d.status === "assigned") && (d.biker_phone || d.assigned_biker_phone) && (
+                  {d.status === "Biker Assigned" && (d.biker_phone || d.assigned_biker_phone) && (
                     <div className="mt-2 bg-blue-500/5 border border-blue-500/20 rounded-lg p-2.5">
                       <p className="text-xs font-semibold text-blue-600 mb-1">🏍️ Your Delivery Rider</p>
                       <p className="text-xs text-muted-foreground mb-1.5">Your package has been assigned to a rider</p>
-                      <a
-                        href={`https://wa.me/${(d.biker_phone || d.assigned_biker_phone || "").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello, regarding my package ${d.tracking_id}`)}`}
+                      
+                      <a href={"https://wa.me/" + (d.biker_phone || d.assigned_biker_phone || "").replace(/[^0-9]/g, "").replace(/^0/, "234") + "?text=" + encodeURIComponent("Hello, regarding my package " + d.tracking_id)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 text-xs bg-[#25D366]/10 text-[#25D366] px-3 py-1.5 rounded-lg font-medium hover:bg-[#25D366]/20 transition-colors"
@@ -257,25 +290,29 @@ const Dashboard = () => {
                         Contact Rider: {d.biker_phone || d.assigned_biker_phone}
                       </a>
                     </div>
-                  )}
+                )}
 
                   {(d.status === "Completed" || d.status === "completed") && (
                     <p className="mt-2 text-xs text-green-600 font-medium">✅ Package delivered successfully – thank you!</p>
                   )}
 
-                  {(d.status === "Pending Delivery & Payment" || d.status === "pending_delivery") && (
+                  {(d.status === "Pending Delivery & Payment") && (
                     <div className="mt-2">
-                      <a
-                        href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my package ${d.tracking_id}. I need help.`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-[#25D366] transition-colors"
-                      >
-                        <MessageCircle size={12} />
-                        Contact Support about this package
-                      </a>
-                    </div>
-                  )}
+    
+                    <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my package ${d.tracking_id}. I need help.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-[#25D366] transition-colors"
+                  >
+      <MessageCircle size={12} />
+      Contact Support about this package
+    </a>
+  </div>
+)}
+
+{(d.status === "Delivered") && (
+  <p className="mt-2 text-xs text-green-600 font-medium">✅ Package delivered successfully – thank you!</p>
+)}
                 </div>
               );
             })}

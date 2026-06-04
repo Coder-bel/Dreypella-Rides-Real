@@ -37,9 +37,8 @@ type BookingWithProfile = {
   user_id: string;
   profile?: {
     full_name: string | null;
-    phone: string | null;
+    phone_number: string | null;
   };
-  email?: string;
 };
 
 const PaymentsOverview = () => {
@@ -48,7 +47,6 @@ const PaymentsOverview = () => {
   const [updating, setUpdating] = useState<string | null>(null);
 
   const fetchBookings = async () => {
-    // Fetch bookings
     const { data: bookingsData } = await supabase
       .from("bookings")
       .select("*")
@@ -56,15 +54,15 @@ const PaymentsOverview = () => {
 
     if (!bookingsData) return;
 
-    // Fetch profiles for all user_ids
+    // Use id instead of user_id to match profiles table
     const userIds = [...new Set(bookingsData.map((b) => b.user_id))];
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("user_id, full_name, phone")
-      .in("user_id", userIds);
+      .select("id, full_name, phone_number")
+      .in("id", userIds);
 
     const profileMap = new Map(
-      (profiles || []).map((p) => [p.user_id, p])
+      (profiles || []).map((p) => [p.id, p])
     );
 
     const enriched: BookingWithProfile[] = bookingsData.map((b) => ({
@@ -77,7 +75,6 @@ const PaymentsOverview = () => {
 
   useEffect(() => { fetchBookings(); }, []);
 
-  // Real-time subscription
   useEffect(() => {
     const channel = supabase
       .channel("payments-realtime")
@@ -95,10 +92,8 @@ const PaymentsOverview = () => {
     }
   };
 
-  // Generate a display reference from booking id
   const getRef = (id: string) => "DR-" + id.substring(0, 8).toUpperCase();
 
-  // Filter by search
   const filtered = bookings.filter((b) => {
     if (!search) return true;
     const q = search.toLowerCase();
@@ -154,7 +149,7 @@ const PaymentsOverview = () => {
                     {b.profile?.full_name || "—"}
                   </TableCell>
                   <TableCell className="text-white/70 text-xs">
-                    {b.profile?.phone || "—"}
+                    {b.profile?.phone_number || "—"}
                   </TableCell>
                   <TableCell className="text-[#C8102E] font-mono font-bold text-xs">
                     {getRef(b.id)}

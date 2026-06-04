@@ -84,9 +84,10 @@ const BikersOnboarding = () => {
     const { error: insertErr } = await supabase.from("bikers").insert({
       full_name: fullName.trim(),
       whatsapp_number: phone.trim(),
+      phone_number: phone.trim(),
       plate_number: plate.trim() || null,
       company_code: code,
-      status: "pending_signup",
+      status: "Active",
       email: bikerCodeToEmail(code),
     });
 

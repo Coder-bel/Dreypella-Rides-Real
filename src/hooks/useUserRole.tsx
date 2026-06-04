@@ -20,7 +20,7 @@ export const useUserRole = (): { role: UserRole | null; loading: boolean } => {
     const fetchRole = async () => {
       if (!user) {
         if (!cancelled) {
-          setRole("null");
+          setRole(null);
           setLoading(false);
         }
         return;
@@ -29,14 +29,22 @@ export const useUserRole = (): { role: UserRole | null; loading: boolean } => {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
-        .maybeSingle();
+        .eq("user_id", user.id);
 
       if (!cancelled) {
         if (error || !data) {
-          setRole("user"); // default to user if no role found
+          setRole("user");
         } else {
-          setRole(data.role as UserRole);
+          const rolesArray = Array.isArray(data) ? data : [data];
+          const roles = rolesArray.map((r: any) => r.role);
+
+          if (roles.includes("admin")) {
+            setRole("admin");
+          } else if (roles.includes("biker")) {
+            setRole("biker");
+          } else {
+            setRole("user");
+          }
         }
         setLoading(false);
       }
@@ -46,15 +54,6 @@ export const useUserRole = (): { role: UserRole | null; loading: boolean } => {
     return () => { cancelled = true; };
   }, [user, authLoading]);
 
-  if (authLoading) return { role: "null", loading: true };
-
+  if (authLoading) return { role: null, loading: true };
   return { role, loading };
 };
-
-
-
-
-
-
-
-

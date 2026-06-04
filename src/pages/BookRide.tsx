@@ -3,6 +3,7 @@
  * Trip schedules, pickup points, and pricing are loaded dynamically from the trips table.
  */
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bus, CircleCheck as CheckCircle, MessageCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -27,6 +28,7 @@ const generateRef = () =>
 
 const BookRide = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [pickup, setPickup] = useState("");
@@ -38,6 +40,7 @@ const BookRide = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [bookingRef, setBookingRef] = useState("");
+
 
   // Fetch active trips
   const fetchTrips = async () => {
@@ -106,17 +109,20 @@ const BookRide = () => {
     const tripLabel = `${selectedTrip.travel_date} - ${selectedTrip.departure_time}`;
 
     const { error: dbError } = await supabase.from("bookings").insert({
-      user_id: user.id,
-      route: selectedTrip.route,
-      travel_date: tripLabel,
-      pickup_location: pickup,
-      seats: seats,
-      full_name: fullName,
-      phone_number: phone,
-      booking_reference: ref,
-      amount: totalPrice,
-      payment_status: "Pending Payment",
-      status: "Pending",
+  	user_id: user.id,
+  	route: selectedTrip.route,
+  	travel_date: tripLabel,
+  	pickup_location: pickup,
+  	pickup: pickup,
+  	seats: seats,
+  	passengers: seats,
+  	full_name: fullName,
+  	phone_number: phone,
+  	amount: totalPrice,
+  	price: totalPrice,
+  	payment_status: "Pending Payment",
+  	status: "Pending",
+	booking_reference: ref,
     });
 
     if (dbError) {
@@ -137,8 +143,7 @@ const BookRide = () => {
 
     setBookingRef(ref);
     setShowPayment(false);
-    setLoading(false);
-    setSubmitted(true);
+    navigate("/dashboard");
   };
 
   if (submitted) {

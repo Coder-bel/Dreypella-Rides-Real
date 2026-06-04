@@ -13,7 +13,7 @@ interface BikerRow {
   whatsapp_number: string;
   company_code: string | null;
   plate_number: string | null;
-  is_active: boolean;
+  onboarded: boolean;
   created_at: string;
   status: string;
   delivered: number;
@@ -27,7 +27,7 @@ const BikersOverview = () => {
   const fetchData = async () => {
     setLoading(true);
     const [bRes, dRes] = await Promise.all([
-      supabase.from("bikers").select("id, full_name, whatsapp_number, company_code, plate_number, is_active, created_at, status").order("created_at", { ascending: false }),
+      supabase.from("bikers").select("id, full_name, whatsapp_number, company_code, plate_number, onboarded, created_at, status").order("created_at", { ascending: false }),
       supabase.from("dispatches").select("assigned_biker_id, status").eq("status", "completed"),
     ]);
     const counts = new Map<string, number>();
@@ -41,9 +41,9 @@ const BikersOverview = () => {
   useEffect(() => { fetchData(); }, []);
 
   const toggleActive = async (b: BikerRow) => {
-    const { error } = await supabase.from("bikers").update({ is_active: !b.is_active }).eq("id", b.id);
+    const { error } = await supabase.from("bikers").update({ onboarded: !b.onboarded }).eq("id", b.id);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: b.is_active ? "Biker deactivated" : "Biker activated" }); fetchData(); }
+    else { toast({ title: b.onboarded ? "Biker deactivated" : "Biker activated" }); fetchData(); }
   };
 
   const filtered = rows.filter((r) => {
@@ -104,15 +104,15 @@ const BikersOverview = () => {
                   <TableCell className="text-white/70 text-xs text-center">{b.delivered}</TableCell>
                   <TableCell>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${b.is_active ? "bg-green-500/15 text-green-400" : "bg-white/10 text-white/50"}`}>
-                      {b.is_active ? "Active" : "Inactive"}
+                      {b.onboarded ? "Active" : "Inactive"}
                     </span>
                   </TableCell>
                   <TableCell>
                     <button
                       onClick={() => toggleActive(b)}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${b.is_active ? "bg-white/10 text-white hover:bg-white/20" : "bg-green-600 text-white hover:bg-green-700"}`}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${b.onboarded ? "bg-white/10 text-white hover:bg-white/20" : "bg-green-600 text-white hover:bg-green-700"}`}
                     >
-                      <Power size={12} /> {b.is_active ? "Deactivate" : "Activate"}
+                      <Power size={12} /> {b.onboarded ? "Deactivate" : "Activate"}
                     </button>
                   </TableCell>
                 </TableRow>

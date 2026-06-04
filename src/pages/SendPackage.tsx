@@ -1,7 +1,7 @@
 /**
  * Package delivery uses pay-on-delivery model with distance-based pricing.
- * Short Distance (0-6km): ₦900 base + ₦120/km
- * Long Distance (7km+): ₦1,000 base + ₦150/km
+ * Short Distance (0-6km): ₦600 base + ₦120/km
+ * Long Distance (7km+): ₦600 base + ₦150/km
  * Large Package: +₦500
  */
 import { useState } from "react";
@@ -17,7 +17,6 @@ const LARGE_PACKAGE_TYPES = ["Large Box"];
 const generateTrackingId = () =>
   "DRP-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
 
-/** Approximate distances (km) between major cities */
 const CITY_DISTANCES: Record<string, Record<string, number>> = {
   lagos:    { lagos: 0, ibadan: 120, ogbomoso: 145, oyo: 165, iseyin: 175 },
   ibadan:   { lagos: 120, ibadan: 0, ogbomoso: 108, oyo: 60, iseyin: 75 },
@@ -28,13 +27,11 @@ const CITY_DISTANCES: Record<string, Record<string, number>> = {
 
 const CITY_KEYWORDS = Object.keys(CITY_DISTANCES);
 
-/** Try to detect which city a location string refers to */
 const detectCity = (text: string): string | null => {
   const lower = text.toLowerCase();
   for (const city of CITY_KEYWORDS) {
     if (lower.includes(city)) return city;
   }
-  // Common aliases
   if (lower.includes("lautech") || lower.includes("arada") || lower.includes("takie")) return "ogbomoso";
   if (lower.includes("ui ") || lower.includes("bodija") || lower.includes("challenge") || lower.includes("mokola")) return "ibadan";
   if (lower.includes("lekki") || lower.includes("ikeja") || lower.includes("yaba") || lower.includes("surulere") || lower.includes("ajah")) return "lagos";
@@ -42,12 +39,11 @@ const detectCity = (text: string): string | null => {
   return null;
 };
 
-/** Estimate distance between two location strings */
 const estimateDistance = (pickup: string, dropoff: string): number | null => {
   const cityA = detectCity(pickup);
   const cityB = detectCity(dropoff);
   if (!cityA || !cityB) return null;
-  if (cityA === cityB) return 5; // same city default ~5km
+  if (cityA === cityB) return 5;
   return CITY_DISTANCES[cityA]?.[cityB] ?? null;
 };
 
@@ -63,7 +59,7 @@ type PriceBreakdown = {
 
 const calculatePrice = (distanceKm: number, isLargePackage: boolean): PriceBreakdown => {
   const isLongDistance = distanceKm >= 7;
-  const baseFee = isLongDistance ? 600 : 600;
+  const baseFee = 600;
   const ratePerKm = isLongDistance ? 150 : 120;
   const perKmCharge = distanceKm * ratePerKm;
   const largePackageFee = isLargePackage ? 500 : 0;
@@ -92,7 +88,6 @@ const SendPackage = () => {
 
   const handleChange = (field: string, value: string) => {
     setForm((f) => ({ ...f, [field]: value }));
-    // Reset price when locations change
     if (field === "pickup" || field === "dropoff" || field === "packageType") {
       setPriceBreakdown(null);
       setCantEstimate(false);
@@ -131,7 +126,7 @@ const SendPackage = () => {
     const id = generateTrackingId();
 
     const { error: dbError } = await supabase.from("dispatches").insert({
-      user_id: user.id,
+     user_id: user.id,
       tracking_id: id,
       tracking_number: id,
       package_type: form.packageType,
@@ -143,11 +138,12 @@ const SendPackage = () => {
       sender_phone: form.senderPhone,
       receiver_name: form.receiverName,
       receiver_phone: form.receiverPhone,
-      delivery_option: form.delivery,
-      delivery_type: form.delivery,
+      delivery_option: form.delivery === "same-day" ? "Same Day" : "Next Day",
+      delivery_type: form.delivery === "same-day" ? "Same Day" : "Next Day",
       estimated_price: priceBreakdown.total,
       price: priceBreakdown.total,
       status: "Pending Delivery & Payment",
+      payment_status: "Pending",
     });
 
     if (dbError) {
@@ -179,34 +175,30 @@ const SendPackage = () => {
             <p><span className="font-medium">Sender:</span> {form.senderName} ({form.senderPhone})</p>
             <p><span className="font-medium">Receiver:</span> {form.receiverName} ({form.receiverPhone})</p>
             <p><span className="font-medium">Delivery:</span> {form.delivery === "same-day" ? "Same Day" : "Next Day"}</p>
-            {priceBreakdown && (
-              <>
-                <p><span className="font-medium">Distance:</span> ~{priceBreakdown.distance} km</p>
-                <p className="font-semibold text-accent">Total Price: ₦{priceBreakdown.total.toLocaleString()}</p>
-              </>
-            )}
+            <p className="font-semibold text-accent">Total: ₦{priceBreakdown?.total.toLocaleString()}</p>
             <p className="font-semibold text-accent">Status: Pending Delivery & Payment</p>
           </div>
-          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-xs text-left mb-4 space-y-1">
-            <p className="font-bold text-sm text-center">💰 Pay on Delivery</p>
-            <p className="text-center text-muted-foreground">
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-xs text-center mb-4">
+            <p className="font-bold text-sm mb-1">💰 Pay on Delivery</p>
+            <p className="text-muted-foreground">
               The receiver will pay ₦{priceBreakdown?.total.toLocaleString()} upon delivery.
             </p>
-            <p className="text-center text-muted-foreground mt-2">
+            <p className="text-muted-foreground mt-2">
               For reference — Account: {OPAY_ACCOUNT.name}, {OPAY_ACCOUNT.bank}, {OPAY_ACCOUNT.number}
             </p>
           </div>
           <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 text-center mb-4">
             <Clock size={24} className="mx-auto text-blue-500 mb-2" />
             <p className="text-sm font-semibold text-blue-600">Waiting for a rider to accept your order</p>
-            <p className="text-xs text-muted-foreground mt-1">Once a rider accepts, their WhatsApp number will appear on your dashboard so you can coordinate the pickup.</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Once a rider accepts, their WhatsApp number will appear on your dashboard.
+            </p>
           </div>
-          <a
-            href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my package ${trackingId}`)}`}
+          
+            <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello DREYPELLA support, regarding my package ${trackingId}`)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
-          >
+            className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2">
             <MessageCircle size={18} fill="white" />
             Contact Support
           </a>
@@ -231,7 +223,12 @@ const SendPackage = () => {
       <form onSubmit={handleFormSubmit} className="space-y-4 animate-fade-in-up-delay-2">
         <div>
           <label className="block text-sm font-medium mb-1.5">Package Type</label>
-          <select value={form.packageType} onChange={(e) => handleChange("packageType", e.target.value)} required className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
+          <select
+            value={form.packageType}
+            onChange={(e) => handleChange("packageType", e.target.value)}
+            required
+            className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all"
+          >
             <option value="">Select type</option>
             {packageTypes.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
@@ -242,12 +239,26 @@ const SendPackage = () => {
 
         <div>
           <label className="block text-sm font-medium mb-1.5">Pickup Location</label>
-          <input type="text" value={form.pickup} onChange={(e) => handleChange("pickup", e.target.value)} required placeholder="e.g. LAUTECH Gate, Ogbomoso" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+          <input
+            type="text"
+            value={form.pickup}
+            onChange={(e) => handleChange("pickup", e.target.value)}
+            required
+            placeholder="e.g. LAUTECH Gate, Ogbomoso"
+            className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all"
+          />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1.5">Delivery Location</label>
-          <input type="text" value={form.dropoff} onChange={(e) => handleChange("dropoff", e.target.value)} required placeholder="e.g. Arada, Ogbomoso" className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all" />
+          <input
+            type="text"
+            value={form.dropoff}
+            onChange={(e) => handleChange("dropoff", e.target.value)}
+            required
+            placeholder="e.g. Arada, Ogbomoso"
+            className="w-full rounded-xl border bg-card px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all"
+          />
         </div>
 
         {/* Calculate Price button */}
@@ -269,8 +280,8 @@ const SendPackage = () => {
             <p className="text-xs text-muted-foreground mb-4">
               Please include a city name (Lagos, Ibadan, Ogbomoso, Oyo, Iseyin) in your locations, or contact support for a quote.
             </p>
-            <a
-              href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Hello DREYPELLA support, I need a delivery price quote. Pickup: " + form.pickup + " → Delivery: " + form.dropoff)}`}
+            
+            <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Hello DREYPELLA support, I need a delivery price quote. Pickup: " + form.pickup + " → Delivery: " + form.dropoff)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-xl bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors"
@@ -281,35 +292,12 @@ const SendPackage = () => {
           </div>
         )}
 
-        {/* Price breakdown */}
+        {/* Total price only — no breakdown */}
         {priceBreakdown && (
-          <div className="bg-accent/10 rounded-xl p-4 animate-fade-in-up space-y-2">
-            <p className="font-semibold text-sm text-center mb-2">Price Breakdown</p>
-            <div className="bg-card rounded-lg p-3 text-sm space-y-1.5">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Distance</span>
-                <span className="font-medium">~{priceBreakdown.distance} km ({priceBreakdown.isLongDistance ? "Long Distance" : "Short Distance"})</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Base Fee</span>
-                <span className="font-medium">₦{priceBreakdown.baseFee.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Per km ({priceBreakdown.distance} × ₦{priceBreakdown.ratePerKm})</span>
-                <span className="font-medium">₦{priceBreakdown.perKmCharge.toLocaleString()}</span>
-              </div>
-              {priceBreakdown.largePackageFee > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Large Package Fee</span>
-                  <span className="font-medium">₦{priceBreakdown.largePackageFee.toLocaleString()}</span>
-                </div>
-              )}
-              <div className="border-t pt-1.5 flex justify-between font-bold">
-                <span>Total</span>
-                <span className="text-accent">₦{priceBreakdown.total.toLocaleString()}</span>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground text-center">Pay on delivery – receiver pays upon receipt</p>
+          <div className="bg-accent/10 rounded-xl p-4 text-center animate-fade-in-up">
+            <p className="text-xs text-muted-foreground mb-1">Delivery Price</p>
+            <p className="text-2xl font-bold text-accent">₦{priceBreakdown.total.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mt-1">Pay on delivery – receiver pays upon receipt</p>
           </div>
         )}
 

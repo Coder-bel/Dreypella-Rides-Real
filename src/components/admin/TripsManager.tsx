@@ -120,16 +120,19 @@ const TripsManager = () => {
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm);
+    fetchTrips();
   };
 
   const handleDelete = async (id: string) => {
     setDeleting(id);
     await supabase.from("trips").delete().eq("id", id);
     setDeleting(null);
+    fetchTrips();
   };
 
   const toggleActive = async (id: string, current: boolean) => {
     await supabase.from("trips").update({ is_active: !current }).eq("id", id);
+    fetchTrips();
   };
 
   return (

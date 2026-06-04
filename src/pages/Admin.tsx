@@ -18,9 +18,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 
-type BookingStatus = "pending_payment" | "confirmed" | "completed" | "cancelled";
+type BookingStatus = "Pending" | "Confirmed" | "Completed" | "Cancelled";
 
-const STATUS_OPTIONS: BookingStatus[] = ["pending_payment", "confirmed", "completed", "cancelled"];
+const STATUS_OPTIONS: BookingStatus[] = ["Pending", "Confirmed", "Completed", "Cancelled"];
 
 const statusColors: Record<string, string> = {
   pending_payment: "bg-yellow-500/15 text-yellow-600",
@@ -36,6 +36,10 @@ const statusLabels: Record<string, string> = {
   confirmed: "Payment Confirmed",
   completed: "Ride Completed",
   cancelled: "Cancelled",
+  Pending: "Pending Payment",
+  Confirmed: "Payment Confirmed",
+  Completed: "Ride Completed",
+  Cancelled: "Cancelled",
 };
 
 type BookingWithProfile = {
@@ -48,7 +52,7 @@ type BookingWithProfile = {
   status: string;
   created_at: string;
   user_id: string;
-  profile?: { full_name: string | null; phone: string | null };
+  profile?: { full_name: string | null; phone_number: string | null };
 };
 
 const Admin = () => {
@@ -59,25 +63,26 @@ const Admin = () => {
   const [verifying, setVerifying] = useState(false);
 
   const fetchData = async () => {
-    const [bRes, dRes] = await Promise.all([
-      supabase.from("bookings").select("*").order("created_at", { ascending: false }),
-      supabase.from("dispatches").select("*").order("created_at", { ascending: false }),
-    ]);
+  const [bRes, dRes] = await Promise.all([
+    supabase.from("bookings").select("*").order("created_at", { ascending: false }),
+    supabase.from("dispatches").select("*").order("created_at", { ascending: false }),
+  ]);
 
-    if (bRes.data) {
-      // Enrich bookings with profile data
-      const userIds = [...new Set(bRes.data.map((b) => b.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, full_name, phone")
-        .in("user_id", userIds);
-      const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
-      setBookings(
-        bRes.data.map((b) => ({ ...b, profile: profileMap.get(b.user_id) || undefined }))
-      );
-    }
-    if (dRes.data) setDispatches(dRes.data);
-  };
+  if (bRes.data) {
+    // Use id instead of user_id to match profiles table
+    const userIds = [...new Set(bRes.data.map((b) => b.user_id))];
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, phone_number")
+      .in("id", userIds);
+    const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+    setBookings(
+      bRes.data.map((b) => ({ ...b, profile: profileMap.get(b.user_id) || undefined }))
+    );
+  }
+  if (dRes.data) setDispatches(dRes.data);
+};
+      
 
   useEffect(() => { fetchData(); }, []);
 
@@ -90,11 +95,28 @@ const Admin = () => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const updateBookingStatus = async (id: string, status: string) => {
-    setUpdating(id);
-    await supabase.from("bookings").update({ status }).eq("id", id);
-    setUpdating(null);
+const updateBookingStatus = async (id: string, status: string) => {
+  setUpdating(id);
+
+  // Map status to payment_status
+  const paymentStatusMap: Record<string, string> = {
+    "Pending": "Pending Payment",
+    "Confirmed": "Payment Confirmed",
+    "Completed": "Ride Completed",
+    "Cancelled": "Cancelled",
   };
+
+  await supabase
+    .from("bookings")
+    .update({
+      status,
+      payment_status: paymentStatusMap[status] || "Pending Payment",
+    })
+    .eq("id", id);
+
+  setUpdating(null);
+  fetchData(); // ← refetch immediately
+};
 
   const updateDispatchStatus = async (id: string, status: string) => {
     setUpdating(id);
@@ -103,20 +125,24 @@ const Admin = () => {
   };
 
   const handleVerifyPayment = async () => {
-    if (!verifyBooking) return;
-    setVerifying(true);
-    const { error } = await supabase
-      .from("bookings")
-      .update({ status: "confirmed" })
-      .eq("id", verifyBooking.id);
-    setVerifying(false);
-    if (!error) {
-      toast({ title: "Payment Verified ✅", description: `Booking DR-${verifyBooking.id.substring(0, 8).toUpperCase()} confirmed. User will see their invoice instantly.` });
-      setVerifyBooking(null);
-    } else {
-      toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
-    }
-  };
+  if (!verifyBooking) return;
+  setVerifying(true);
+  const { error } = await supabase
+    .from("bookings")
+    .update({ 
+      status: "Confirmed",
+      payment_status: "Payment Confirmed",
+    })
+    .eq("id", verifyBooking.id);
+  setVerifying(false);
+  if (!error) {
+    toast({ title: "Payment Verified ✅", description: `Booking DR-${verifyBooking.id.substring(0, 8).toUpperCase()} confirmed. User will see their invoice instantly.` });
+    setVerifyBooking(null);
+    fetchData(); // ← refetch immediately
+  } else {
+    toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+  }
+};
 
   const getRef = (id: string) => "DR-" + id.substring(0, 8).toUpperCase();
 
@@ -368,7 +394,7 @@ const Admin = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/50">Phone</span>
-                  <span>{verifyBooking.profile?.phone || "—"}</span>
+                  <span>{verifyBooking.profile?.phone_number || "—"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/50">Route</span>

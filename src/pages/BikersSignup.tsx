@@ -67,17 +67,22 @@ const BikersSignup = () => {
     }
 
     if (signupData.session) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const { data: claimed, error: claimErr } = await supabase.rpc(
         "claim_biker_code",
         { _company_code: code }
       );
-
+      console.log("claim result:", claimed, "claim error:", claimErr);
       if (claimErr || !claimed) {
+	console.log("Claim failed - code:", code, "claimed:", claimed, "err:", claimErr);
         setLoading(false);
         return setError(
           "Invalid or already-used Company Code. Contact support if you believe this is an error."
         );
       }
+	setLoading(false);
+  	navigate("/bikers");
+  	return;
 
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
@@ -102,12 +107,15 @@ const BikersSignup = () => {
     });
 
     if (!signInErr) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const { data: claimed, error: claimErr } = await supabase.rpc(
         "claim_biker_code",
         { _company_code: code }
       );
+      console.log("claim result:", claimed, "claim error:", claimErr);
 
       if (claimErr || !claimed) {
+        console.log("Claim failed - code:", code, "claimed:", claimed, "err:", claimErr);
         setLoading(false);
         return setError(
           "Invalid or already-used Company Code. Contact support if you believe this is an error."
