@@ -117,7 +117,10 @@ const BikersDashboard = () => {
 
   // Earnings: sum of completed deliveries for this biker (placeholder calc — 20% commission)
   const totalCompleted = completedDispatches.length;
-  const totalEarnings = completedDispatches.reduce((sum, d) => sum + Number(d.price) * 0.2, 0);
+  const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const todayEarnings = completedDispatches
+    .filter((d) => new Date(d.created_at) >= last24h)
+    .reduce((sum, d) => sum + Number(d.price) * 0.3, 0);
 
   const bikerName = biker?.full_name || "Rider";
 
@@ -158,8 +161,8 @@ const BikersDashboard = () => {
             <Wallet size={16} className="text-green-600" />
             <p className="text-xs text-muted-foreground">Earnings</p>
           </div>
-          <p className="font-display font-bold text-2xl text-green-600">₦{totalEarnings.toLocaleString()}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">{totalCompleted} completed deliveries</p>
+	    <p className="font-display font-bold text-2xl text-green-600">₦{todayEarnings.toLocaleString()}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Last 24hrs • {totalCompleted} total deliveries</p>
         </div>
       </div>
 
@@ -209,6 +212,14 @@ const BikersDashboard = () => {
         <h2 className="font-display font-semibold text-sm mb-3 flex items-center gap-2">
           <Package size={16} className="text-[#C8102E]" /> Available Trips ({pendingDispatches.length})
         </h2>
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 mb-3">
+    <p className="text-xs font-semibold text-yellow-700 mb-1">⚠️ Important Notice</p>
+    <p className="text-xs text-yellow-700">
+      For interstate deliveries (e.g. Ogbomoso → Lagos), please <strong>do not accept</strong> the order. 
+      Interstate packages are processed and handled directly by the admin. 
+      Only accept orders within the same city.
+    </p>
+  </div>
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="w-8 h-8 border-3 border-accent/30 border-t-accent rounded-full animate-spin" />
