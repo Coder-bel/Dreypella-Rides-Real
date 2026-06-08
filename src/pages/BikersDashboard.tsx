@@ -124,6 +124,20 @@ const BikersDashboard = () => {
 
   const bikerName = biker?.full_name || "Rider";
 
+  // Detect if a dispatch is interstate based on pickup/dropoff cities
+const isInterstateDispatch = (d: any): boolean => {
+  const pickup = (d.pickup || d.pickup_location || "").toLowerCase();
+  const dropoff = (d.dropoff || d.delivery_location || "").toLowerCase();
+  const cities = ["lagos", "ibadan", "ogbomoso", "iseyin", "oyo"];
+  const pickupCity = cities.find(c => pickup.includes(c));
+  const dropoffCity = cities.find(c => dropoff.includes(c));
+  return !!(pickupCity && dropoffCity && pickupCity !== dropoffCity);
+};
+
+
+
+
+
   return (
     <div className="container px-3 sm:px-4 py-5 sm:py-6 max-w-3xl mx-auto pb-24 md:pb-6">
       {/* Welcome Header */}
@@ -245,19 +259,30 @@ const BikersDashboard = () => {
                   <p className="font-semibold text-base">Price: ₦{Number(d.price).toLocaleString()}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => handleAccept(d)}
-                    className="bg-[#C8102E] hover:bg-[#a30d25] text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm min-h-[44px]"
-                  >
-                    <Truck size={16} /> Accept Trip
-                  </button>
-                  <button
-                    onClick={() => toast({ title: "Trip skipped", description: "It will remain available for other riders." })}
-                    className="border text-muted-foreground hover:bg-secondary font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm min-h-[44px]"
-                  >
-                    <X size={16} /> Decline
-                  </button>
-                </div>
+  {isInterstateDispatch(d) ? (
+    <button
+      disabled
+      className="col-span-2 bg-gray-200 text-gray-400 font-semibold py-3 rounded-xl flex items-center justify-center gap-2 text-sm min-h-[44px] cursor-not-allowed"
+    >
+      <Truck size={16} /> Admin handles interstate deliveries
+    </button>
+  ) : (
+    <>
+      <button
+        onClick={() => handleAccept(d)}
+        className="bg-[#C8102E] hover:bg-[#a30d25] text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm min-h-[44px]"
+      >
+        <Truck size={16} /> Accept Trip
+      </button>
+      <button
+        onClick={() => toast({ title: "Trip skipped", description: "It will remain available for other riders." })}
+        className="border text-muted-foreground hover:bg-secondary font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm min-h-[44px]"
+      >
+        <X size={16} /> Decline
+      </button>
+    </>
+  )}
+</div>
               </div>
             ))}
           </div>

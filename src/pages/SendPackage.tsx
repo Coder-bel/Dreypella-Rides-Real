@@ -513,7 +513,8 @@ const SendPackage = () => {
     setSubmitted(true);
   };
 
-  if (submitted) {
+if (submitted) {
+    const isInterstate = priceBreakdown?.isInterstate;
     return (
       <div className="container px-4 py-12 text-center animate-fade-in-up">
         <div className="bg-card rounded-2xl p-8 border max-w-md mx-auto">
@@ -532,32 +533,70 @@ const SendPackage = () => {
             <p><span className="font-medium">Receiver:</span> {form.receiverName} ({form.receiverPhone})</p>
             <p><span className="font-medium">Delivery:</span> {form.delivery === "same-day" ? "Same Day" : "Next Day"}</p>
             <p className="font-semibold text-accent">Total: ₦{priceBreakdown?.total.toLocaleString()}</p>
-            <p className="font-semibold text-accent">Status: Pending Delivery & Payment</p>
           </div>
-          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-xs text-center mb-4">
-            <p className="font-bold text-sm mb-1">💰 Pay on Delivery</p>
-            <p className="text-muted-foreground">The receiver will pay ₦{priceBreakdown?.total.toLocaleString()} upon delivery.</p>
-            <p className="text-muted-foreground mt-2">For reference — Account: {OPAY_ACCOUNT.name}, {OPAY_ACCOUNT.bank}, {OPAY_ACCOUNT.number}</p>
-          </div>
-          <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 text-center mb-4">
-            <Clock size={24} className="mx-auto text-blue-500 mb-2" />
-            <p className="text-sm font-semibold text-blue-600">Waiting for a rider to accept your order</p>
-            <p className="text-xs text-muted-foreground mt-1">Once a rider accepts, their WhatsApp number will appear on your dashboard.</p>
-          </div>
-          
-           <a href={"https://wa.me/" + SUPPORT_WHATSAPP + "?text=" + encodeURIComponent("Hello DREYPELLA support, regarding my package " + trackingId)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
-          >
-            <MessageCircle size={18} fill="white" />
-            Contact Support
-          </a>
+
+          {isInterstate ? (
+            // Interstate — contact support + payment options
+            <div className="space-y-3">
+              <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 text-left">
+                <p className="text-sm font-semibold text-blue-600 mb-1">🚚 Interstate Delivery</p>
+                <p className="text-xs text-muted-foreground">This is an interstate package. Please contact support on WhatsApp to process your delivery. You can choose to pay now or have the receiver pay on delivery.</p>
+              </div>
+
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-xs text-left space-y-2">
+                <p className="font-bold text-sm">💳 Payment Options</p>
+                <div className="space-y-1">
+                  <p className="font-semibold text-accent">Option 1 — Sender pays now:</p>
+                  <p className="text-muted-foreground">Transfer ₦{priceBreakdown?.total.toLocaleString()} to:</p>
+                  <p className="font-medium">Name: Ajayi Oluwadamilare John</p>
+                  <p className="font-medium">Bank: {OPAY_ACCOUNT.bank}</p>
+                  <p className="font-medium">Account: {OPAY_ACCOUNT.number}</p>
+                  <p className="text-muted-foreground mt-1">Then send your receipt to support on WhatsApp.</p>
+                </div>
+                <div className="border-t pt-2 space-y-1">
+                  <p className="font-semibold text-accent">Option 2 — Receiver pays on delivery:</p>
+                  <p className="text-muted-foreground">The receiver will pay ₦{priceBreakdown?.total.toLocaleString()} when the package arrives.</p>
+                </div>
+              </div>
+
+              
+               <a href={"https://wa.me/" + SUPPORT_WHATSAPP + "?text=" + encodeURIComponent("Hello DREYPELLA support, I have an interstate package dispatch. Tracking ID: " + trackingId + ". From: " + form.pickup + " To: " + form.dropoff + ". Total: ₦" + priceBreakdown?.total.toLocaleString())}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
+              >
+                <MessageCircle size={18} fill="white" />
+                Contact Support on WhatsApp
+              </a>
+            </div>
+          ) : (
+            // Same city — waiting for rider
+            <div className="space-y-3">
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-xs text-center">
+                <p className="font-bold text-sm mb-1">💰 Pay on Delivery</p>
+                <p className="text-muted-foreground">The receiver will pay ₦{priceBreakdown?.total.toLocaleString()} upon delivery.</p>
+                <p className="text-muted-foreground mt-2">For reference — Account: Ajayi Oluwadamilare John, {OPAY_ACCOUNT.bank}, {OPAY_ACCOUNT.number}</p>
+              </div>
+              <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 text-center">
+                <Clock size={24} className="mx-auto text-blue-500 mb-2" />
+                <p className="text-sm font-semibold text-blue-600">Waiting for a rider to accept your order</p>
+                <p className="text-xs text-muted-foreground mt-1">Once a rider accepts, their WhatsApp number will appear on your dashboard.</p>
+              </div>
+              
+               <a href={"https://wa.me/" + SUPPORT_WHATSAPP + "?text=" + encodeURIComponent("Hello DREYPELLA support, regarding my package " + trackingId)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
+              >
+                <MessageCircle size={18} fill="white" />
+                Contact Support
+              </a>
+            </div>
+          )}
         </div>
       </div>
     );
   }
-
   const canCalculate = form.pickup.trim() && form.dropoff.trim() && form.packageType;
 
   return (

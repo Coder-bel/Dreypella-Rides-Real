@@ -9,7 +9,7 @@ export const BIKER_PASSWORD = "12345678";
 
 /** Official Opay account details — used everywhere payment instructions appear */
 export const OPAY_ACCOUNT = {
-  name: "Dreypella Ride",
+  name: "Ajayi Oluwadamilare John",
   bank: "Opay",
   number: "8082144372",
 } as const;

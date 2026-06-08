@@ -11,36 +11,92 @@ const cities = ["Lagos", "Ibadan", "Ogbomoso", "Iseyin", "Oyo"];
 
 const faqs = [
   {
+    question: "What is Dreypella Ride?",
+    answer: "Dreypella Ride is a transportation and logistics platform that helps customers book interstate travel, send parcels, and arrange deliveries across Nigeria.",
+  },
+  {
+    question: "What services does Dreypella Ride offer?",
+    answer: "We offer passenger transportation, interstate parcel delivery, door-to-door logistics services, package pickup and drop-off, and transport booking and coordination.",
+  },
+  {
+    question: "Where does Dreypella Ride operate?",
+    answer: "We serve major cities and states across Nigeria, including Lagos, Ibadan, Oyo, Ogbomoso, Ilorin, Abuja, Port Harcourt, Enugu, Kano, and more.",
+  },
+  {
     question: "How do I book a ride?",
-    answer: "Create an account, go to 'Book a Ride', select your route, travel date, pickup point and number of seats. Proceed to payment and transfer the amount to our Opay account. Your booking will be confirmed once payment is verified by our admin.",
+    answer: "You can book through our website, WhatsApp, or customer support. Simply provide your pickup location, destination, travel date, and number of passengers.",
   },
   {
-    question: "How long does payment verification take?",
-    answer: "Payment verification typically takes between 15 minutes to 20 minutes. Once confirmed, you'll see your booking status change to 'Payment Confirmed' on your dashboard and a boarding pass will be generated.",
+    question: "Can I book a ride for someone else?",
+    answer: "Yes! You can book on behalf of friends, family members, or colleagues.",
   },
   {
-    question: "How do I send a package?",
-    answer: "Go to 'Send a Package', enter your pickup and delivery locations, fill in sender and receiver details,and note if it is from one state to another make it is the precised and correct address because we deal with door to door delivery, and submit. A rider will accept and deliver your package. Payment is made on delivery by the receiver.",
+    question: "How early should I book?",
+    answer: "We recommend booking at least 24 hours before departure to secure your seat.",
   },
   {
-    question: "What cities do you cover?",
-    answer: "We currently cover Lagos, Ibadan, Ogbomoso, Iseyin, and Oyo. All routes are available in both directions.",
+    question: "What information do I need to provide when booking?",
+    answer: "You can go ahead to the booking section for the information needed. If there are any further questions, please contact support.",
   },
   {
-    question: "How do I track my package?",
-    answer: "Once your package is submitted, you'll receive a tracking ID. You can view your package status on your dashboard. When a rider accepts, their WhatsApp number will appear so you can contact them directly.",
+    question: "Can I cancel my booking?",
+    answer: "Yes. Cancellation policies may vary depending on how close the departure time is. Please contact support for assistance.",
+  },
+  {
+    question: "What items can I send through Dreypella Ride?",
+    answer: "You can send documents, clothing, electronics, food items, business goods, and personal packages.",
+  },
+  {
+    question: "What items are prohibited?",
+    answer: "We do not transport illegal substances, weapons, explosives, hazardous chemicals, stolen goods, or any item prohibited by Nigerian law.",
+  },
+  {
+    question: "How is delivery pricing calculated?",
+    answer: "Delivery fees are based on the pickup cost from sender to transport terminal, interstate transportation cost, and delivery cost from arrival terminal to recipient.",
+  },
+  {
+    question: "Do you offer door-to-door delivery?",
+    answer: "Yes. We provide pickup and delivery services where available.",
+  },
+  {
+    question: "Can I track my package?",
+    answer: "Yes. Customers receive delivery updates and can contact support for status reports.",
   },
   {
     question: "What payment methods do you accept?",
-    answer: "We currently accept bank transfers via Opay.For packages, payment is made on delivery.",
+    answer: "We accept bank transfer, mobile transfer, and other approved payment methods.",
   },
   {
-    question: "Can I cancel a booking?",
-    answer: "To cancel a booking, please contact our support team on WhatsApp as soon as possible. Cancellations are subject to our refund policy.",
+    question: "When do I pay?",
+    answer: "Payment must be confirmed before transportation or delivery is processed.",
   },
   {
-    question: "What if my package is lost or damaged?",
-    answer: "Please contact our support team immediately via WhatsApp. We take responsibility for packages in our care and will work to resolve any issues promptly.",
+    question: "Are there hidden charges?",
+    answer: "No. Customers receive a clear breakdown of charges before payment.",
+  },
+  {
+    question: "Is my package insured?",
+    answer: "Depending on the package type and value, insurance options may be available. Please contact support for details.",
+  },
+  {
+    question: "How do you ensure package safety?",
+    answer: "Packages are carefully handled and monitored throughout transit.",
+  },
+  {
+    question: "What happens if my package is damaged?",
+    answer: "Customers should report any issues immediately upon delivery so they can be investigated and resolved promptly.",
+  },
+  {
+    question: "Can businesses use Dreypella Ride for regular deliveries?",
+    answer: "Yes. We work with businesses for recurring logistics and transportation needs.",
+  },
+  {
+    question: "Do you partner with vehicle owners and transport companies?",
+    answer: "Yes. We welcome partnerships with bus operators, fleet owners, and logistics providers.",
+  },
+  {
+    question: "How can I become a transport partner?",
+    answer: "Contact our support team with your details. Our team will be happy to assist you.",
   },
 ];
 

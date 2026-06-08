@@ -1,9 +1,5 @@
 /**
  * /reset-password — handles Supabase's password recovery redirect.
- *
- * NOTE: After deployment, add the deployed domain (e.g. https://yourdomain.com/reset-password)
- * to Supabase → Authentication → URL Configuration → Redirect URLs so the recovery
- * email link works on production as well.
  */
 import PasswordInput from "@/components/PasswordInput";
 import { useEffect, useMemo, useState } from "react";
@@ -19,7 +15,7 @@ const calcStrength = (pw: string) => {
   if (/[A-Z]/.test(pw)) s++;
   if (/\d/.test(pw)) s++;
   if (/[^A-Za-z0-9]/.test(pw)) s++;
-  return s; // 0-5
+  return s;
 };
 
 const ResetPassword = () => {
@@ -32,21 +28,42 @@ const ResetPassword = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Detect Supabase recovery session from URL
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
         setValidLink(true);
+        setReady(true);
       }
     });
-    // Fallback: if a session already exists OR hash contains recovery token
+
     (async () => {
-      const hash = window.location.hash || "";
-      const hasRecovery = hash.includes("type=recovery") || hash.includes("access_token");
-      const { data } = await supabase.auth.getSession();
-      if (data.session || hasRecovery) setValidLink(true);
+      const params = new URLSearchParams(window.location.search);
+      const tokenHash = params.get("token_hash");
+      const type = params.get("type");
+
+      console.log("token_hash:", tokenHash, "type:", type);
+
+      if (tokenHash && type === "recovery") {
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: "recovery",
+        });
+        console.log("OTP verify result:", data, error);
+        if (data.session) {
+          setValidLink(true);
+        } else {
+          setValidLink(false);
+        }
+      } else {
+        const hash = window.location.hash || "";
+        if (hash.includes("access_token") || hash.includes("type=recovery")) {
+          const { data } = await supabase.auth.getSession();
+          if (data.session) setValidLink(true);
+        }
+      }
       setReady(true);
     })();
+
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -67,7 +84,7 @@ const ResetPassword = () => {
         .eq("user_id", uid);
       const list = (roles || []).map((r: any) => r.role);
       if (list.includes("biker")) target = "/bikers-login";
-      else if (list.includes("admin")) target = "/auth";
+      else if (list.includes("admin")) target = "/admin-login";
       else target = "/auth";
     }
     await supabase.auth.signOut();
@@ -80,7 +97,13 @@ const ResetPassword = () => {
     if (pw !== confirm) return setError("Passwords do not match. Please try again.");
     if (!PASSWORD_REGEX.test(pw)) return setError(PASSWORD_ERROR);
     setBusy(true);
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    console.log("Session before update:", sessionData.session?.user?.email);
+
     const { error: updErr } = await supabase.auth.updateUser({ password: pw });
+    console.log("Update error:", updErr);
+
     setBusy(false);
     if (updErr) {
       const msg = updErr.message?.toLowerCase() || "";
@@ -147,7 +170,13 @@ const ResetPassword = () => {
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">New Password</label>
                 <div className="relative">
                   <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <PasswordInput value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Enter new password" className="w-full rounded-xl border border-border bg-background pl-9 py-2.5 text-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent outline-none" required />
+                  <PasswordInput
+                    value={pw}
+                    onChange={(e) => setPw(e.target.value)}
+                    placeholder="Enter new password"
+                    className="w-full rounded-xl border border-border bg-background pl-9 py-2.5 text-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent outline-none"
+                    required
+                  />
                 </div>
                 {pw && (
                   <div className="mt-2">
@@ -168,7 +197,13 @@ const ResetPassword = () => {
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Confirm New Password</label>
                 <div className="relative">
                   <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Re-enter new password" className="w-full rounded-xl border border-border bg-background pl-9 py-2.5 text-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent outline-none" required />
+                  <PasswordInput
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    placeholder="Re-enter new password"
+                    className="w-full rounded-xl border border-border bg-background pl-9 py-2.5 text-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent outline-none"
+                    required
+                  />
                 </div>
               </div>
 
